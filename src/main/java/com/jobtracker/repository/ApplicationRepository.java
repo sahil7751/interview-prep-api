@@ -56,5 +56,28 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     // Find by id AND user (prevents accessing other users' data)
     Optional<Application> findByIdAndUser(Long id, User user);
+
+
+    // Monthly trend — count applications grouped by month+year
+    @Query("""
+                    SELECT MONTH(a.applicationDate) as month,
+                           YEAR(a.applicationDate)  as year,
+                           COUNT(a)                 as count
+                    FROM Application a
+                    WHERE a.user = :user
+                    GROUP BY YEAR(a.applicationDate), MONTH(a.applicationDate)
+                    ORDER BY YEAR(a.applicationDate), MONTH(a.applicationDate)
+                    """)
+    List<Object[]> getMonthlyApplicationCounts(@Param("user") User user);
+
+    // All status counts in one query
+    @Query("""
+                    SELECT a.status as status, COUNT(a) as count
+                    FROM Application a
+                    WHERE a.user = :user
+                    GROUP BY a.status
+                    """)
+    List<Object[]> getStatusCounts(@Param("user") User user);
+    
 }
 
