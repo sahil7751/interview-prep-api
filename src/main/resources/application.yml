@@ -34,3 +34,11 @@ jwt:
   expiration: 86400000
 
 
+file:
+  upload-dir: uploads/resumes
+
+gemini:
+  api:
+    key: AQ.Ab8RN6L5z6SOaKpsL3RnuvmYUD1ocp0LjWb30KwQ5Akk-bbiHQ
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+
