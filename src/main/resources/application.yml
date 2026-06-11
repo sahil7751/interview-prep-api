@@ -40,5 +40,5 @@ file:
 gemini:
   api:
     key: AQ.Ab8RN6L5z6SOaKpsL3RnuvmYUD1ocp0LjWb30KwQ5Akk-bbiHQ
-    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 

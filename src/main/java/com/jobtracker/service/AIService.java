@@ -25,38 +25,56 @@ public class AIService {
 
     // ── CALL GEMINI ──────────────────────────────────────────────
     private String callGemini(String prompt) {
-        try {
-            WebClient client = WebClient.create();
+                Exception lastException = null;
 
-            Map<String, Object> textPart = Map.of("text", prompt);
-            Map<String, Object> parts = Map.of("parts", List.of(textPart));
-            Map<String, Object> body = Map.of("contents", List.of(parts));
+                for (int attempt = 0; attempt < 3; attempt++) {
+                        try {
+                                WebClient client = WebClient.create();
 
-            String response = client.post()
-                    .uri(apiUrl + "?key=" + apiKey)
-                    .header("Content-Type", "application/json")
-                    .bodyValue(body)
-                    .retrieve()
-                    .onStatus(
-                        status -> status.isError(),
-                        response -> response.bodyToMono(String.class)
-                                .map(body -> new RuntimeException("Gemini Error: " + body))
-                    )
-                    .bodyToMono(String.class)
-                    .block();
+                                Map<String, Object> textPart = Map.of("text", prompt);
+                                Map<String, Object> parts = Map.of("parts", List.of(textPart));
+                                Map<String, Object> requestBody = Map.of("contents", List.of(parts));
 
-            // Extract text from Gemini response
-            JsonNode root = objectMapper.readTree(response);
-            return root
-                    .path("candidates").get(0)
-                    .path("content")
-                    .path("parts").get(0)
-                    .path("text")
-                    .asText();
+                                String geminiResponse = client.post()
+                                                .uri(apiUrl + "?key=" + apiKey)
+                                                .header("Content-Type", "application/json")
+                                                .bodyValue(requestBody)
+                                                .retrieve()
+                                                .onStatus(
+                                                        status -> status.isError(),
+                                                        clientResponse -> clientResponse.bodyToMono(String.class)
+                                                                        .map(errorBody ->
+                                                                                        new RuntimeException("Gemini Error: " + errorBody))
+                                                )
+                                                .bodyToMono(String.class)
+                                                .block();
 
-        } catch (Exception e) {
-            throw new RuntimeException("AI service error: " + e.getMessage());
+                                // Extract text from Gemini response
+                                JsonNode root = objectMapper.readTree(geminiResponse);
+                                return root
+                                                .path("candidates").get(0)
+                                                .path("content")
+                                                .path("parts").get(0)
+                                                .path("text")
+                                                .asText();
+
+                        } catch (Exception e) {
+                                lastException = e;
+
+                                if (attempt == 2) {
+                                        break;
+                                }
+
+                                try {
+                                        Thread.sleep(1000L * (attempt + 1));
+                                } catch (InterruptedException interruptedException) {
+                                        Thread.currentThread().interrupt();
+                                        throw new RuntimeException("AI service interrupted while retrying", interruptedException);
+                                }
+                        }
         }
+
+                throw new RuntimeException("AI service error: " + lastException.getMessage(), lastException);
     }
 
     // ── CLEAN JSON from Gemini (strips markdown code fences) ─────
