@@ -1,47 +1,79 @@
 package com.jobtracker.exception;
 
 import com.jobtracker.dto.response.ApiResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.*;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
+    // Validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(
-            MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(MethodArgumentNotValidException ex) {
 
         Map<String, String> errors = new HashMap<>();
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            errors.put(error.getField(), error.getDefaultMessage());
+        for (FieldError err : ex.getBindingResult().getFieldErrors()) {
+            errors.put(err.getField(), err.getDefaultMessage());
         }
         return ResponseEntity.badRequest()
-                .body(ApiResponse.error("Validation failed"));
+                .body(ApiResponse.<Map<String, String>>builder()
+                        .success(false)
+                        .message("Validation failed")
+                        .data(errors)
+                        .build());
     }
 
+    // File too large
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Object>> handleFileTooLarge(
+            MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiResponse.error("File size exceeds the 10MB limit"));
+    }
+
+    // Auth errors
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuth(
+            AuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("Authentication failed: "
+                        + ex.getMessage()));
+    }
+
+    // Access denied
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDenied(
+            AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("Access denied"));
+    }
+
+    // Business logic errors
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Object>> handleRuntime(RuntimeException ex) {
-        String error = ex.getMessage() != null ? ex.getMessage() : "";
-
-        if (error.contains("503")) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiResponse.error(
-                    "AI service is currently busy. Please try again in a few minutes."));
-        }
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiResponse<Object>> handleRuntime(
+            RuntimeException ex) {
+        log.warn("Business error: {}", ex.getMessage());
+        return ResponseEntity.badRequest()
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
+    // Unexpected errors
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleGeneral(Exception ex) {
+    public ResponseEntity<ApiResponse<Object>> handleGeneral(
+            Exception ex) {
+        log.error("Unexpected error: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Something went wrong"));
+                .body(ApiResponse.error(
+                        "An unexpected error occurred. Please try again."));
     }
 }

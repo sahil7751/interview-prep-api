@@ -39,11 +39,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/login")
-                        .permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/health").permitAll()
+                        // ── Add these Swagger URLs ──
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs")
+                        .permitAll()
+                        // ───────────────────────────
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

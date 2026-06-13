@@ -5,6 +5,8 @@ import com.jobtracker.dto.response.ApiResponse;
 import com.jobtracker.dto.response.InterviewResponse;
 import com.jobtracker.dto.response.PagedResponse;
 import com.jobtracker.service.InterviewService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,11 +18,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/interviews")
 @RequiredArgsConstructor
+@Tag(name = "Interviews", description = "Track and manage interviews")
 public class InterviewController {
 
     private final InterviewService interviewService;
 
     @PostMapping
+        @Operation(summary = "Create an interview record")
     public ResponseEntity<ApiResponse<InterviewResponse>> create(
             @Valid @RequestBody InterviewRequest request) {
 
@@ -31,6 +35,7 @@ public class InterviewController {
     }
 
     @GetMapping
+        @Operation(summary = "Get all interviews")
     public ResponseEntity<ApiResponse<PagedResponse<InterviewResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -44,6 +49,7 @@ public class InterviewController {
     }
 
     @GetMapping("/{id}")
+        @Operation(summary = "Get an interview by ID")
     public ResponseEntity<ApiResponse<InterviewResponse>> getById(
             @PathVariable Long id) {
 
@@ -53,6 +59,7 @@ public class InterviewController {
     }
 
     @PutMapping("/{id}")
+        @Operation(summary = "Update an interview")
     public ResponseEntity<ApiResponse<InterviewResponse>> update(
             @PathVariable Long id,
             @Valid @RequestBody InterviewRequest request) {
@@ -63,6 +70,7 @@ public class InterviewController {
     }
 
     @DeleteMapping("/{id}")
+        @Operation(summary = "Delete an interview")
     public ResponseEntity<ApiResponse<String>> delete(
             @PathVariable Long id) {
 

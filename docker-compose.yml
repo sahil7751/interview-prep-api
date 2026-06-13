@@ -1,0 +1,84 @@
+# version: '3.8'
+
+services:
+
+  # ── MySQL Database ──────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: job-tracker-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE:      job_tracker_db
+      MYSQL_USER:          jobtracker
+      MYSQL_PASSWORD:      jobtracker123
+    ports:
+      - "3307:3306"          # 3307 on host (avoids conflict with local MySQL)
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - job-tracker-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "-u", "jobtracker", "-pjobtracker123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Spring Boot Backend ─────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job-tracker-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQL_HOST:     db
+      MYSQL_PORT:     3306
+      MYSQL_DB:       job_tracker_db
+      MYSQL_USER:     jobtracker
+      MYSQL_PASSWORD: jobtracker123
+      JWT_SECRET:     JobTrackerSuperSecretKeyThatIsAtLeast256BitsLong!
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      SERVER_PORT:    8081
+    ports:
+      - "8081:8081"
+    volumes:
+      - resume_uploads:/app/uploads/resumes
+      - app_logs:/app/logs
+    networks:
+      - job-tracker-network
+    healthcheck:
+      test: ["CMD-SHELL",
+             "wget -qO- http://localhost:8081/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── React Frontend ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./job-tracker-frontend
+      dockerfile: Dockerfile
+    container_name: job-tracker-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - job-tracker-network
+
+volumes:
+  mysql_data:
+  resume_uploads:
+  app_logs:
+
+networks:
+  job-tracker-network:
+    driver: bridge
+
