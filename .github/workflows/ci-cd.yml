@@ -10,29 +10,13 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+
 jobs:
 
   # ── Job 1: Test Backend ────────────────────────────────────────
   test-backend:
     name: Test Spring Boot Backend
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root123
-          MYSQL_DATABASE: job_tracker_test
-          MYSQL_USER: jobtracker
-          MYSQL_PASSWORD: jobtracker123
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost
-                        -u jobtracker -pjobtracker123"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -46,24 +30,16 @@ jobs:
           cache: maven
 
       - name: Run backend tests
-        working-directory: ./job-tracker-backend
-        env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/job_tracker_test?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-          SPRING_DATASOURCE_USERNAME: jobtracker
-          SPRING_DATASOURCE_PASSWORD: jobtracker123
-          JWT_SECRET: TestSecretKeyForCIThatIsAtLeast256BitsLong!
-          GEMINI_API_KEY: test-key
         run: mvn test -B
 
       - name: Build backend JAR
-        working-directory: ./job-tracker-backend
         run: mvn clean package -DskipTests -B
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
-          path: job-tracker-backend/target/*.jar
+          path: target/*.jar
 
   # ── Job 2: Build Frontend ──────────────────────────────────────
   build-frontend:
@@ -122,7 +98,7 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
-          context: ./job-tracker-backend
+          context: .
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/backend:latest

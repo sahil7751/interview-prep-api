@@ -38,11 +38,12 @@ jwt:
   secret: ${JWT_SECRET:JobTrackerSuperSecretKeyThatIsAtLeast256BitsLong!}
   expiration: ${JWT_EXPIRATION:86400000}
 
-gemini:
+groq:
   api:
-    key: ${GEMINI_API_KEY:your-key-here}
-    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
-
+    key: ${GROQ_API_KEY}
+    url: https://api.groq.com/openai/v1/chat/completions
+    model: llama-3.3-70b-versatile
+ 
 file:
   upload-dir: ${FILE_UPLOAD_DIR:uploads/resumes}
 
