@@ -1,261 +1,181 @@
 package com.jobtracker.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jobtracker.dto.request.*;
-import com.jobtracker.dto.response.*;
+import com.jobtracker.dto.request.InterviewQuestionsRequest;
+import com.jobtracker.dto.request.ResumeAnalysisRequest;
+import com.jobtracker.dto.request.SkillGapRequest;
+import com.jobtracker.dto.response.InterviewQuestionsResponse;
+import com.jobtracker.dto.response.ResumeAnalysisResponse;
+import com.jobtracker.dto.response.SkillGapResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class AIService {
 
-    @Value("${gemini.api.key}")
-    private String apiKey;
+                private final GroqService groqService;
+                private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${gemini.api.url}")
-    private String apiUrl;
+                private String callGroq(String prompt) {
+                                return groqService.generateContent(prompt);
+                }
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+                private String cleanJson(String raw) {
+                                return raw
+                                                                .replaceAll("(?s)```json\\s*", "")
+                                                                .replaceAll("(?s)```\\s*", "")
+                                                                .trim();
+                }
 
-    // ── CALL GEMINI ──────────────────────────────────────────────
-    private String callGemini(String prompt) {
-                Exception lastException = null;
+                public ResumeAnalysisResponse analyzeResume(ResumeAnalysisRequest request) {
+                                String prompt = """
+                                                                You are an expert ATS resume reviewer.
+                                                                Analyze the following resume and respond ONLY with valid JSON.
+                                                                No explanation, no markdown, just raw JSON.
 
-                for (int attempt = 0; attempt < 3; attempt++) {
-                        try {
-                                WebClient client = WebClient.create();
+                                                                Resume:
+                                                                %s
 
-                                Map<String, Object> textPart = Map.of("text", prompt);
-                                Map<String, Object> parts = Map.of("parts", List.of(textPart));
-                                Map<String, Object> requestBody = Map.of("contents", List.of(parts));
+                                                                %s
 
-                                String geminiResponse = client.post()
-                                                .uri(apiUrl + "?key=" + apiKey)
-                                                .header("Content-Type", "application/json")
-                                                .bodyValue(requestBody)
-                                                .retrieve()
-                                                .onStatus(
-                                                        status -> status.isError(),
-                                                        clientResponse -> clientResponse.bodyToMono(String.class)
-                                                                        .map(errorBody ->
-                                                                                        new RuntimeException("Gemini Error: " + errorBody))
-                                                )
-                                                .bodyToMono(String.class)
-                                                .block();
-
-                                // Extract text from Gemini response
-                                JsonNode root = objectMapper.readTree(geminiResponse);
-                                return root
-                                                .path("candidates").get(0)
-                                                .path("content")
-                                                .path("parts").get(0)
-                                                .path("text")
-                                                .asText();
-
-                        } catch (Exception e) {
-                                lastException = e;
-
-                                if (attempt == 2) {
-                                        break;
-                                }
+                                                                Respond with this exact JSON structure:
+                                                                {
+                                                                        "atsScore": <number 0-100>,
+                                                                        "scoreLabel": "<Excellent|Good|Average|Needs Work>",
+                                                                        "strengths": ["<strength1>", "<strength2>"],
+                                                                        "weaknesses": ["<weakness1>", "<weakness2>"],
+                                                                        "missingKeywords": ["<keyword1>", "<keyword2>"],
+                                                                        "improvementSuggestions": ["<suggestion1>", "<suggestion2>"],
+                                                                        "overallFeedback": "<2-3 sentence summary>"
+                                                                }
+                                                                """.formatted(
+                                                                request.getResumeText(),
+                                                                request.getJobDescription() != null
+                                                                                                ? "Target Job Description:\n" + request.getJobDescription()
+                                                                                                : "No specific job description provided.");
 
                                 try {
-                                        Thread.sleep(1000L * (attempt + 1));
-                                } catch (InterruptedException interruptedException) {
-                                        Thread.currentThread().interrupt();
-                                        throw new RuntimeException("AI service interrupted while retrying", interruptedException);
+                                                String raw = callGroq(prompt);
+                                                String cleaned = cleanJson(raw);
+                                                return objectMapper.readValue(cleaned, ResumeAnalysisResponse.class);
+                                } catch (Exception e) {
+                                                throw new RuntimeException("Failed to parse AI response: " + e.getMessage());
                                 }
-                        }
-        }
-
-                throw new RuntimeException("AI service error: " + lastException.getMessage(), lastException);
-    }
-
-    // ── CLEAN JSON from Gemini (strips markdown code fences) ─────
-    private String cleanJson(String raw) {
-        return raw
-                .replaceAll("(?s)```json\\s*", "")
-                .replaceAll("(?s)```\\s*", "")
-                .trim();
-    }
-
-    // ── RESUME ANALYSIS ──────────────────────────────────────────
-    public ResumeAnalysisResponse analyzeResume(
-            ResumeAnalysisRequest request) {
-
-        String prompt = """
-                You are an expert ATS resume reviewer.
-                Analyze the following resume and respond ONLY with valid JSON.
-                No explanation, no markdown, just raw JSON.
-
-                Resume:
-                %s
-
-                %s
-
-                Respond with this exact JSON structure:
-                {
-                  "atsScore": <number 0-100>,
-                  "scoreLabel": "<Excellent|Good|Average|Needs Work>",
-                  "strengths": ["<strength1>", "<strength2>"],
-                  "weaknesses": ["<weakness1>", "<weakness2>"],
-                  "missingKeywords": ["<keyword1>", "<keyword2>"],
-                  "improvementSuggestions": ["<suggestion1>", "<suggestion2>"],
-                  "overallFeedback": "<2-3 sentence summary>"
-                }
-                """.formatted(
-                request.getResumeText(),
-                request.getJobDescription() != null
-                        ? "Target Job Description:\n" + request.getJobDescription()
-                        : "No specific job description provided.");
-
-        try {
-            String raw = callGemini(prompt);
-            String cleaned = cleanJson(raw);
-            return objectMapper.readValue(cleaned,
-                    ResumeAnalysisResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to parse AI response: " + e.getMessage());
-        }
-    }
-
-    // ── INTERVIEW QUESTIONS ───────────────────────────────────────
-    public InterviewQuestionsResponse generateQuestions(
-            InterviewQuestionsRequest request) {
-
-        String prompt = """
-                You are an expert technical interviewer.
-                Generate interview questions for the following role and respond
-                ONLY with valid JSON. No explanation, no markdown, just raw JSON.
-
-                Job Role: %s
-                Experience Level: %s
-                Job Description: %s
-
-                Respond with this exact JSON structure:
-                {
-                  "jobRole": "%s",
-                  "technicalQuestions": [
-                    {
-                      "question": "<question text>",
-                      "hint": "<brief answer hint>",
-                      "difficulty": "<Easy|Medium|Hard>"
-                    }
-                  ],
-                  "behaviouralQuestions": [
-                    {
-                      "question": "<question text>",
-                      "hint": "<brief answer hint>",
-                      "difficulty": "<Easy|Medium|Hard>"
-                    }
-                  ],
-                  "hrQuestions": [
-                    {
-                      "question": "<question text>",
-                      "hint": "<brief answer hint>",
-                      "difficulty": "Easy"
-                    }
-                  ]
                 }
 
-                Generate %d questions total, distributed across the three categories.
-                """.formatted(
-                request.getJobRole() != null
-                        ? request.getJobRole()
-                        : "Software Engineer",
-                request.getExperienceLevel() != null
-                        ? request.getExperienceLevel()
-                        : "Fresher",
-                request.getJobDescription(),
-                request.getJobRole() != null
-                        ? request.getJobRole()
-                        : "Software Engineer",
-                request.getQuestionCount());
+                public InterviewQuestionsResponse generateQuestions(InterviewQuestionsRequest request) {
+                                String prompt = """
+                                                                You are an expert technical interviewer.
+                                                                Generate interview questions for the following role and respond
+                                                                ONLY with valid JSON. No explanation, no markdown, just raw JSON.
 
-        try {
-            String raw = callGemini(prompt);
-            String cleaned = cleanJson(raw);
-            return objectMapper.readValue(cleaned,
-                    InterviewQuestionsResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to parse AI response: " + e.getMessage());
-        }
-    }
+                                                                Job Role: %s
+                                                                Experience Level: %s
+                                                                Job Description: %s
 
-    // ── SKILL GAP ANALYSIS ────────────────────────────────────────
-    public SkillGapResponse analyzeSkillGap(SkillGapRequest request) {
+                                                                Respond with this exact JSON structure:
+                                                                {
+                                                                        "jobRole": "%s",
+                                                                        "technicalQuestions": [
+                                                                                {
+                                                                                        "question": "<question text>",
+                                                                                        "hint": "<brief answer hint>",
+                                                                                        "difficulty": "<Easy|Medium|Hard>"
+                                                                                }
+                                                                        ],
+                                                                        "behaviouralQuestions": [
+                                                                                {
+                                                                                        "question": "<question text>",
+                                                                                        "hint": "<brief answer hint>",
+                                                                                        "difficulty": "<Easy|Medium|Hard>"
+                                                                                }
+                                                                        ],
+                                                                        "hrQuestions": [
+                                                                                {
+                                                                                        "question": "<question text>",
+                                                                                        "hint": "<brief answer hint>",
+                                                                                        "difficulty": "Easy"
+                                                                                }
+                                                                        ]
+                                                                }
 
-        String prompt = """
-                You are a career counselor and technical skills expert.
-                Analyze the skill gap and respond ONLY with valid JSON.
-                No explanation, no markdown, just raw JSON.
+                                                                Generate %d questions total, distributed across the three categories.
+                                                                """.formatted(
+                                                                request.getJobRole() != null ? request.getJobRole() : "Software Engineer",
+                                                                request.getExperienceLevel() != null ? request.getExperienceLevel() : "Fresher",
+                                                                request.getJobDescription(),
+                                                                request.getJobRole() != null ? request.getJobRole() : "Software Engineer",
+                                                                request.getQuestionCount());
 
-                Target Role: %s
-                Job Description: %s
-                Candidate's Current Skills: %s
-
-                Respond with this exact JSON structure:
-                {
-                  "presentSkills": ["<skill1>", "<skill2>"],
-                  "missingSkills": ["<skill1>", "<skill2>"],
-                  "niceToHaveSkills": ["<skill1>", "<skill2>"],
-                  "matchPercentage": <number 0-100>,
-                  "learningPath": [
-                    {
-                      "skill": "<skill name>",
-                      "suggestedResource": "<resource name>",
-                      "estimatedTime": "<e.g. 2 weeks>"
-                    }
-                  ],
-                  "summary": "<2-3 sentence overall assessment>"
+                                try {
+                                                String raw = callGroq(prompt);
+                                                String cleaned = cleanJson(raw);
+                                                return objectMapper.readValue(cleaned, InterviewQuestionsResponse.class);
+                                } catch (Exception e) {
+                                                throw new RuntimeException("Failed to parse AI response: " + e.getMessage());
+                                }
                 }
-                """.formatted(
-                request.getTargetRole() != null
-                        ? request.getTargetRole()
-                        : "Software Engineer",
-                request.getJobDescription(),
-                request.getCurrentSkills());
 
-        try {
-            String raw = callGemini(prompt);
-            String cleaned = cleanJson(raw);
-            return objectMapper.readValue(cleaned, SkillGapResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to parse AI response: " + e.getMessage());
-        }
-    }
+                public SkillGapResponse analyzeSkillGap(SkillGapRequest request) {
+                                String prompt = """
+                                                                You are a career counselor and technical skills expert.
+                                                                Analyze the skill gap and respond ONLY with valid JSON.
+                                                                No explanation, no markdown, just raw JSON.
 
-    // ── PLACEMENT PREPARATION ─────────────────────────────────────
-    public String getPlacementPrep(String jobDescription, String targetRole) {
+                                                                Target Role: %s
+                                                                Job Description: %s
+                                                                Candidate's Current Skills: %s
 
-        String prompt = """
-                You are a placement preparation expert for engineering students.
-                Give a comprehensive placement preparation guide for the following.
+                                                                Respond with this exact JSON structure:
+                                                                {
+                                                                        "presentSkills": ["<skill1>", "<skill2>"],
+                                                                        "missingSkills": ["<skill1>", "<skill2>"],
+                                                                        "niceToHaveSkills": ["<skill1>", "<skill2>"],
+                                                                        "matchPercentage": <number 0-100>,
+                                                                        "learningPath": [
+                                                                                {
+                                                                                        "skill": "<skill name>",
+                                                                                        "suggestedResource": "<resource name>",
+                                                                                        "estimatedTime": "<e.g. 2 weeks>"
+                                                                                }
+                                                                        ],
+                                                                        "summary": "<2-3 sentence overall assessment>"
+                                                                }
+                                                                """.formatted(
+                                                                request.getTargetRole() != null ? request.getTargetRole() : "Software Engineer",
+                                                                request.getJobDescription(),
+                                                                request.getCurrentSkills());
 
-                Target Role: %s
-                Job Description: %s
+                                try {
+                                                String raw = callGroq(prompt);
+                                                String cleaned = cleanJson(raw);
+                                                return objectMapper.readValue(cleaned, SkillGapResponse.class);
+                                } catch (Exception e) {
+                                                throw new RuntimeException("Failed to parse AI response: " + e.getMessage());
+                                }
+                }
 
-                Cover these sections:
-                1. Key topics to study
-                2. DSA topics to focus on
-                3. System design topics (if applicable)
-                4. Projects to build
-                5. Timeline (week-by-week for 4 weeks)
-                6. Resources (free + paid)
-                7. Mock interview tips
+                public String getPlacementPrep(String jobDescription, String targetRole) {
+                                String prompt = """
+                                                                You are a placement preparation expert for engineering students.
+                                                                Give a comprehensive placement preparation guide for the following.
 
-                Be specific and actionable. Format as clean readable text.
-                """.formatted(targetRole, jobDescription);
+                                                                Target Role: %s
+                                                                Job Description: %s
 
-        return callGemini(prompt);
-    }
+                                                                Cover these sections:
+                                                                1. Key topics to study
+                                                                2. DSA topics to focus on
+                                                                3. System design topics (if applicable)
+                                                                4. Projects to build
+                                                                5. Timeline (week-by-week for 4 weeks)
+                                                                6. Resources (free + paid)
+                                                                7. Mock interview tips
+
+                                                                Be specific and actionable. Format as clean readable text.
+                                                                """.formatted(targetRole, jobDescription);
+
+                                return callGroq(prompt);
+                }
 }
