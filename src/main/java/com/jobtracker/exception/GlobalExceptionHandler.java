@@ -17,6 +17,18 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
+        @ExceptionHandler(GroqServiceException.class)
+        public ResponseEntity<ApiResponse<Object>> handleGroq(GroqServiceException ex) {
+                if (ex.getStatus().is4xxClientError()) {
+                        log.warn("Groq client error: {}", ex.getMessage());
+                } else {
+                        log.error("Groq upstream error: ", ex);
+                }
+
+                return ResponseEntity.status(ex.getStatus())
+                                .body(ApiResponse.error(ex.getMessage()));
+        }
+
     // Validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(MethodArgumentNotValidException ex) {

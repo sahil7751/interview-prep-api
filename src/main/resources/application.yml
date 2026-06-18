@@ -40,9 +40,11 @@ jwt:
 
 groq:
   api:
-    key: ${GROQ_API_KEY}
-    url: https://api.groq.com/openai/v1/chat/completions
-    model: llama-3.3-70b-versatile
+    key: ${GROQ_API_KEY:}
+    url: ${GROQ_API_URL:https://api.groq.com/openai/v1/chat/completions}
+    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+    connect-timeout-ms: ${GROQ_CONNECT_TIMEOUT_MS:10000}
+    read-timeout-ms: ${GROQ_READ_TIMEOUT_MS:30000}
  
 file:
   upload-dir: ${FILE_UPLOAD_DIR:uploads/resumes}
@@ -59,6 +61,7 @@ logging:
   level:
     root: WARN
     com.jobtracker: INFO
+    com.jobtracker.service.GroqService: DEBUG
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
 

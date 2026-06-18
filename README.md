@@ -39,7 +39,7 @@ job-tracker-frontend/          # React SPA (port 3000 / 80)
 - **Resume Management** -- Upload multiple PDF versions, set active, versioning
 - **Dashboard & Analytics** -- Monthly trends, status breakdown charts (Recharts), success/rejection rates
 - **Notifications** -- Scheduled reminders for upcoming interviews, assessments, follow-ups
-- **AI Career Assistant** (powered by Google Gemini 2.0 Flash):
+- **AI Career Assistant** (powered by Groq Chat Completions):
   - Resume ATS analysis with scoring
   - Interview question generation per role
   - Skill gap analysis with learning path
@@ -55,7 +55,7 @@ job-tracker-frontend/          # React SPA (port 3000 / 80)
 | Backend | Spring Boot 3.5.14, Java 21, Maven |
 | Security | Spring Security, JWT (jjwt 0.11.5) |
 | Database | MySQL 8 (HikariCP), JPA / Hibernate |
-| AI | Google Gemini 2.0 Flash (WebClient + retry) |
+| AI | Groq Chat Completions (`llama-3.3-70b-versatile` default) |
 | API Docs | SpringDoc OpenAPI 2.8.9 (`/swagger-ui.html`) |
 | Frontend | React 19, React Router 7, Axios |
 | Styling | Tailwind CSS 3 |
@@ -69,7 +69,7 @@ job-tracker-frontend/          # React SPA (port 3000 / 80)
 
 - Java 21, Maven 3.9+, Node.js 20+
 - MySQL 8 running locally (or use Docker)
-- Google Gemini API key (for AI features)
+- Groq API key (for AI features)
 
 ### Environment Variables
 
@@ -83,13 +83,17 @@ job-tracker-frontend/          # React SPA (port 3000 / 80)
 | `MYSQL_PASSWORD` | `jobtracker123` | DB password |
 | `JWT_SECRET` | (256-bit key) | JWT signing secret |
 | `JWT_EXPIRATION` | `86400000` | Token TTL (ms, 24h) |
-| `GEMINI_API_KEY` | _required_ | Gemini AI API key |
+| `GROQ_API_KEY` | _required_ | Groq API key |
+| `GROQ_API_URL` | `https://api.groq.com/openai/v1/chat/completions` | Groq Chat Completions endpoint |
+| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Groq model name |
+| `GROQ_CONNECT_TIMEOUT_MS` | `10000` | Groq connect timeout |
+| `GROQ_READ_TIMEOUT_MS` | `30000` | Groq read timeout |
 
 ### Run with Docker (recommended)
 
 ```bash
-# Set your Gemini API key
-set GEMINI_API_KEY=your_key_here
+# Set your Groq API key
+set GROQ_API_KEY=your_key_here
 
 # Start all services
 docker-compose up --build

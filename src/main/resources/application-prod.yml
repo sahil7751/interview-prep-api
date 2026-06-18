@@ -17,10 +17,13 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
-gemini:
+groq:
   api:
-    key: ${GEMINI_API_KEY}
-    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+    key: ${GROQ_API_KEY:}
+    url: ${GROQ_API_URL:https://api.groq.com/openai/v1/chat/completions}
+    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+    connect-timeout-ms: ${GROQ_CONNECT_TIMEOUT_MS:10000}
+    read-timeout-ms: ${GROQ_READ_TIMEOUT_MS:30000}
 
 file:
   upload-dir: /app/uploads/resumes
@@ -29,6 +32,7 @@ logging:
   level:
     root: WARN
     com.jobtracker: INFO
+    com.jobtracker.service.GroqService: INFO
   file:
     name: /app/logs/job-tracker.log
 

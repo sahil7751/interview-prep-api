@@ -7,7 +7,9 @@ import com.jobtracker.dto.request.SkillGapRequest;
 import com.jobtracker.dto.response.InterviewQuestionsResponse;
 import com.jobtracker.dto.response.ResumeAnalysisResponse;
 import com.jobtracker.dto.response.SkillGapResponse;
+import com.jobtracker.exception.GroqServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -60,7 +62,8 @@ public class AIService {
                                                 String cleaned = cleanJson(raw);
                                                 return objectMapper.readValue(cleaned, ResumeAnalysisResponse.class);
                                 } catch (Exception e) {
-                                                throw new RuntimeException("Failed to parse AI response: " + e.getMessage());
+                                                throw new GroqServiceException(HttpStatus.BAD_GATEWAY,
+                                                                                "Failed to parse Groq resume analysis response: " + e.getMessage(), e);
                                 }
                 }
 
@@ -113,7 +116,8 @@ public class AIService {
                                                 String cleaned = cleanJson(raw);
                                                 return objectMapper.readValue(cleaned, InterviewQuestionsResponse.class);
                                 } catch (Exception e) {
-                                                throw new RuntimeException("Failed to parse AI response: " + e.getMessage());
+                                                throw new GroqServiceException(HttpStatus.BAD_GATEWAY,
+                                                                                "Failed to parse Groq interview questions response: " + e.getMessage(), e);
                                 }
                 }
 
@@ -152,7 +156,8 @@ public class AIService {
                                                 String cleaned = cleanJson(raw);
                                                 return objectMapper.readValue(cleaned, SkillGapResponse.class);
                                 } catch (Exception e) {
-                                                throw new RuntimeException("Failed to parse AI response: " + e.getMessage());
+                                                throw new GroqServiceException(HttpStatus.BAD_GATEWAY,
+                                                                                "Failed to parse Groq skill gap response: " + e.getMessage(), e);
                                 }
                 }
 
