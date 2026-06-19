@@ -104,7 +104,7 @@ export default function AIAssistant() {
       setLoading(false);
     }
   };
-
+ 
   return (
     <div className="space-y-6 max-w-4xl">
 
@@ -114,7 +114,7 @@ export default function AIAssistant() {
           AI Career Assistant
         </h2>
         <p className="text-gray-500 text-sm mt-0.5">
-          Powered by Gemini — resume analysis, interview prep, and more
+          Powered by Groq AI — resume analysis, interview prep, and more
         </p>
       </div>
 

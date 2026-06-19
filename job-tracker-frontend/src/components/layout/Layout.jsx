@@ -4,11 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/dashboard', icon: '📊', label: 'Dashboard' },
-  { to: '/applications', icon: '📋', label: 'Applications' },
-  { to: '/interviews', icon: '🎤', label: 'Interviews' },
-  { to: '/resume', icon: '📄', label: 'Resume' },
-  { to: '/ai', icon: '🤖', label: 'AI Assistant' },
+  { to: '/dashboard',     icon: '🏠', label: 'Dashboard'     },
+  { to: '/applications',  icon: '💼', label: 'Applications'  },
+  { to: '/interviews',    icon: '📅', label: 'Interviews'    },
+  { to: '/resume',        icon: '📝', label: 'Resume'        },
+  { to: '/ai',            icon: '✨', label: 'AI Assistant'  },
+  { to: '/profile',       icon: '👤', label: 'Profile'       },
 ];
 
 export default function Layout({ children }) {

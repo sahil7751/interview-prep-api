@@ -11,6 +11,7 @@ import Applications from './pages/applications/Applications';
 import Interviews from './pages/interviews/Interviews';
 import ResumePage from './pages/resume/ResumePage';
 import AIAssistant from './pages/ai/AIAssistant';
+import ProfilePage from './pages/profile/ProfilePage';
 
 export default function App() {
   return (
@@ -80,6 +81,12 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
+          <Route path="/profile" element={
+            <PrivateRoute>
+              <Layout><ProfilePage /></Layout>
+            </PrivateRoute>
+          } />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
