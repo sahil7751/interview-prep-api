@@ -1,4 +1,4 @@
-import API from '../../../src/api/axios';
+import api from './axios';
 
 export const gamificationApi = {
     getStats: () => API.get('/gamification/stats'),

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { profileApi } from '../../api/profileApi';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { gamificationApi } from '../../api/gamificationApi';
 
 const TABS = [
   { id: 'info',     label: '👤 Personal Info'  },
@@ -549,6 +550,8 @@ export default function ProfilePage() {
             </button>
           </form>
         )}
+
+        {tab === 'xp' && <XpStatsTab />}
       </div>
     </div>
   );
@@ -593,6 +596,206 @@ function SaveButton({ onClick, loading }) {
       )}
       {loading ? 'Saving...' : '💾 Save Changes'}
     </button>
+  );
+}
+
+function XpStatsTab() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    gamificationApi.getStats()
+      .then(res => setStats(res.data.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="w-6 h-6 border-2 border-indigo-500
+                        border-t-transparent rounded-full
+                        animate-spin"/>
+      </div>
+    );
+  }
+
+  if (!stats) return null;
+
+  const LEVEL_ICONS = {
+    'Beginner':          '🌱',
+    'Learner':           '📚',
+    'Problem Solver':    '⚙️',
+    'Interview Ready':   '🎯',
+    'Placement Warrior': '🏆',
+  };
+
+  const levels = [
+    { name: 'Beginner',          xp: 0   },
+    { name: 'Learner',           xp: 50  },
+    { name: 'Problem Solver',    xp: 150 },
+    { name: 'Interview Ready',   xp: 350 },
+    { name: 'Placement Warrior', xp: 700 },
+  ];
+
+  return (
+    <div className="space-y-6">
+
+      {/* Current Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="text-center p-4 bg-indigo-50
+                        rounded-xl border border-indigo-100">
+          <p className="text-2xl font-bold text-indigo-700">
+            {stats.totalXp}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Total XP</p>
+        </div>
+        <div className="text-center p-4 bg-orange-50
+                        rounded-xl border border-orange-100">
+          <p className="text-2xl font-bold text-orange-600">
+            🔥 {stats.currentStreak}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Day Streak</p>
+        </div>
+        <div className="text-center p-4 bg-green-50
+                        rounded-xl border border-green-100">
+          <p className="text-2xl font-bold text-green-700">
+            {stats.totalCheckins}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Total Check-ins
+          </p>
+        </div>
+      </div>
+
+      {/* Level Progress */}
+      <div className="p-4 bg-white border border-gray-200
+                      rounded-xl">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">
+              {LEVEL_ICONS[stats.currentLevel]}
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                {stats.currentLevel}
+              </p>
+              <p className="text-xs text-gray-400">
+                Current Level
+              </p>
+            </div>
+          </div>
+          {stats.nextLevel !== 'MAX LEVEL' && (
+            <div className="text-right">
+              <p className="text-xs text-gray-500">
+                Next: {stats.nextLevel}
+              </p>
+              <p className="text-xs text-indigo-600 font-medium">
+                {stats.xpForNextLevel - stats.xpProgress} XP to go
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="w-full h-3 bg-gray-100 rounded-full
+                        overflow-hidden">
+          <div
+            className="h-full bg-indigo-500 rounded-full
+                       transition-all duration-700"
+            style={{ width: `${stats.progressPercent}%` }}
+          />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-xs text-gray-400">
+            {stats.xpProgress} XP
+          </span>
+          <span className="text-xs text-gray-400">
+            {stats.xpForNextLevel} XP
+          </span>
+        </div>
+      </div>
+
+      {/* Level Roadmap */}
+      <div>
+        <p className="text-sm font-semibold text-gray-900 mb-3">
+          Level Roadmap
+        </p>
+        <div className="space-y-2">
+          {levels.map((level, i) => {
+            const isReached  = stats.totalXp >= level.xp;
+            const isCurrent  = stats.currentLevel === level.name;
+            return (
+              <div
+                key={level.name}
+                className={`flex items-center gap-3 p-3
+                  rounded-lg border transition-colors
+                  ${isCurrent
+                      ? 'bg-indigo-50 border-indigo-200'
+                      : isReached
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-gray-50 border-gray-200'}`}>
+                <span className="text-lg">
+                  {LEVEL_ICONS[level.name]}
+                </span>
+                <div className="flex-1">
+                  <p className={`text-sm font-medium
+                    ${isCurrent
+                        ? 'text-indigo-700'
+                        : isReached
+                          ? 'text-green-700'
+                          : 'text-gray-500'}`}>
+                    {level.name}
+                    {isCurrent && (
+                      <span className="ml-2 text-xs
+                                       bg-indigo-100
+                                       text-indigo-600
+                                       px-2 py-0.5 rounded-full">
+                        Current
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {level.xp} XP required
+                  </p>
+                </div>
+                <span className="text-sm">
+                  {isReached ? '✅' : '🔒'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent XP Activity */}
+      {stats.recentActivity?.length > 0 && (
+        <div>
+          <p className="text-sm font-semibold text-gray-900 mb-3">
+            Recent XP Activity
+          </p>
+          <div className="space-y-2">
+            {stats.recentActivity.map((tx, i) => (
+              <div key={i}
+                   className="flex items-center justify-between
+                              p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm text-gray-800">
+                    {tx.description}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {tx.createdAt}
+                  </p>
+                </div>
+                <span className="text-sm font-bold
+                                 text-indigo-600">
+                  +{tx.xpEarned} XP
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
