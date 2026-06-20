@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import XpBar from './XpBar'; 
 
 const navItems = [
   { to: '/dashboard',     icon: '🏠', label: 'Dashboard'     },
@@ -72,15 +73,24 @@ export default function Layout({ children }) {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6 gap-4 shrink-0">
+        <header className="h-16 bg-white border-b border-gray-200
+                   flex items-center px-6 gap-4 shrink-0">
           <button
             onClick={() => setSidebar(!sidebarOpen)}
-            className="text-gray-500 hover:text-gray-900 transition-colors text-xl"
-          >
+            className="text-gray-500 hover:text-gray-900
+                      transition-colors text-xl">
             ☰
           </button>
-          <h1 className="text-lg font-semibold text-gray-900 flex-1">Job Application Tracker</h1>
-          <span className="text-sm text-gray-500">Hi, {user?.name?.split(' ')[0]} 👋</span>
+          <h1 className="text-lg font-semibold text-gray-900 flex-1">
+            Job Application Tracker
+          </h1>
+
+          {/* XP Bar — add this */}
+          <XpBar />
+
+          <span className="text-sm text-gray-500 hidden sm:block">
+            Hi, {user?.name?.split(' ')[0]} 👋
+          </span>
         </header>
 
         <main className="flex-1 overflow-auto p-6">{children}</main>

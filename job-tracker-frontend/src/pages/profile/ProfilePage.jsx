@@ -10,6 +10,7 @@ const TABS = [
   { id: 'skills',   label: '⚙️ Skills'          },
   { id: 'social',   label: '🔗 Social Links'    },
   { id: 'password', label: '🔒 Change Password' },
+  { id: 'xp',       label: '⚡ XP & Level'      },
 ];
 
 export default function ProfilePage() {
