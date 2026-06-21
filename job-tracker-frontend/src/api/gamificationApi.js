@@ -1,7 +1,8 @@
-import api from './axios';
+import API from './axios';
 
 export const gamificationApi = {
-    getStats: () => API.get('/gamification/stats'),
     checkIn: () => API.post('/gamification/checkin'),
+    getStats: () => API.get('/gamification/stats'),
+    getHistory: () => API.get('/gamification/history')
 };
 
