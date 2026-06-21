@@ -8,6 +8,7 @@ const navItems = [
   { to: '/dashboard',     icon: '🏠', label: 'Dashboard'     },
   { to: '/applications',  icon: '💼', label: 'Applications'  },
   { to: '/interviews',    icon: '📅', label: 'Interviews'    },
+  { to: '/interview-practice', icon: '🧠', label: 'AI Practice'},
   { to: '/resume',        icon: '📝', label: 'Resume'        },
   { to: '/ai',            icon: '✨', label: 'AI Assistant'  },
   { to: '/profile',       icon: '👤', label: 'Profile'       },

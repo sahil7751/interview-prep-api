@@ -12,6 +12,7 @@ import Interviews from './pages/interviews/Interviews';
 import ResumePage from './pages/resume/ResumePage';
 import AIAssistant from './pages/ai/AIAssistant';
 import ProfilePage from './pages/profile/ProfilePage';
+import InterviewPractice from './pages/interview-practice/InterviewPractice';
 
 export default function App() {
   return (
@@ -61,6 +62,11 @@ export default function App() {
               </PrivateRoute>
             }
           />
+          <Route path="/interview-practice" element={
+            <PrivateRoute>
+              <Layout><InterviewPractice /></Layout>
+            </PrivateRoute>
+          } />
           <Route
             path="/resume"
             element={
