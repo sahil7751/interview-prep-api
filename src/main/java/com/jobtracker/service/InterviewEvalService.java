@@ -1,5 +1,6 @@
 package com.jobtracker.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jobtracker.dto.request.EvaluateAnswerRequest;
 import com.jobtracker.dto.request.StartSessionRequest;
@@ -16,6 +17,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -310,40 +312,51 @@ public class InterviewEvalService {
             String userAnswer,
             String category,
             String difficulty) {
-        String prompt = """
-                You are an expert technical interviewer evaluating a candidate's answer.
+            String prompt = """
+                            You are an expert technical interviewer evaluating a candidate's answer.
 
-                Question: %s
-                Category: %s
-                Difficulty: %s
-                Candidate's Answer: %s
+                            Question: %s
+                            Category: %s
+                            Difficulty: %s
+                            Candidate's Answer: %s
 
-                Evaluate the answer and respond ONLY with valid JSON, no markdown:
-                {
-                  "score": <number 0.0-10.0>,
-                  "strengths": ["<point1>", "<point2>"],
-                  "weaknesses": ["<point1>", "<point2>"],
-                  "improvementSuggestions": ["<suggestion1>", "<suggestion2>"],
-                  "idealAnswer": "<comprehensive ideal answer>",
-                  "overallFeedback": "<2-3 sentence overall assessment>"
-                }
+                            Evaluate the answer and respond ONLY with valid JSON, no markdown:
+                            {
+                              "score": <number 0.0-10.0>,
+                              "strengths": ["<point1>", "<point2>"],
+                              "weaknesses": ["<point1>", "<point2>"],
+                              "improvementSuggestions": ["<suggestion1>", "<suggestion2>"],
+                              "idealAnswer": "<comprehensive ideal answer>",
+                              "overallFeedback": "<2-3 sentence overall assessment>"
+                            }
 
-                Scoring guide:
-                9-10: Excellent — complete, accurate, well-explained
-                7-8:  Good — mostly correct with minor gaps
-                5-6:  Average — partially correct, key concepts missing
-                3-4:  Below average — significant gaps
-                0-2:  Poor — incorrect or no meaningful answer
+                            Scoring guide:
+                            9-10: Excellent — complete, accurate, well-explained
+                            7-8:  Good — mostly correct with minor gaps
+                            5-6:  Average — partially correct, key concepts missing
+                            3-4:  Below average — significant gaps
+                            0-2:  Poor — incorrect or no meaningful answer
 
-                If the answer is empty or "skip", give score 0 and explain what was expected.
-                """.formatted(question, category, difficulty, userAnswer);
-
+                            If the answer is empty or "skip", give score 0 and explain what was expected.
+                            """.formatted(question, category, difficulty, userAnswer);
         try {
             String raw = callGroq(prompt);
+
+            // ── ADD THIS DEBUG LOG ──────────────────────────────
+            log.info("=== GROQ RAW RESPONSE ===");
+            log.info(raw);
+            log.info("=========================");
+            // ───────────────────────────────────────────────────
+
             String cleaned = cleanJson(raw);
+
+            log.info("=== CLEANED JSON ===");
+            log.info(cleaned);
+            log.info("====================");
+
             return objectMapper.readValue(cleaned, EvalResult.class);
         } catch (Exception e) {
-            log.error("Evaluation failed: {}", e.getMessage());
+            log.error("Evaluation parse failed: {}", e.getMessage());
             return new EvalResult(
                     0.0,
                     List.of(),
@@ -416,9 +429,24 @@ public class InterviewEvalService {
     // ── HELPERS ──────────────────────────────────────────────────
 
     private String cleanJson(String raw) {
-        return raw.replaceAll("(?s)```json\\s*", "")
+        if (raw == null || raw.isBlank()) {
+            throw new RuntimeException("Empty response from AI");
+        }
+
+        String cleaned = raw
+                .replaceAll("(?s)```json\\s*", "")
                 .replaceAll("(?s)```\\s*", "")
                 .trim();
+
+        // Find the first { and last } to extract just the JSON
+        int start = cleaned.indexOf('{');
+        int end = cleaned.lastIndexOf('}');
+
+        if (start != -1 && end != -1 && end > start) {
+            cleaned = cleaned.substring(start, end + 1);
+        }
+
+        return cleaned;
     }
 
     private String getScoreLabel(double score) {
@@ -513,13 +541,14 @@ public class InterviewEvalService {
     @lombok.Data
     @lombok.NoArgsConstructor
     @lombok.AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)  // ← add this
     public static class EvalResult {
-        private double score;
+        private double       score;
         private List<String> strengths;
         private List<String> weaknesses;
         private List<String> improvementSuggestions;
-        private String idealAnswer;
-        private String overallFeedback;
+        private String       idealAnswer;
+        private String       overallFeedback;
     }
 }
 
