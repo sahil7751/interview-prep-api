@@ -10,33 +10,72 @@ import java.util.List;
 @Builder
 public class DashboardResponse {
 
-    // Summary counts
+    // ── Application Stats ────────────────────────────────────────
     private long totalApplications;
     private long appliedCount;
     private long inProgressCount;
     private long selectedCount;
     private long rejectedCount;
     private long offerReceivedCount;
-
-    // Rates
     private double successRate;
     private double rejectionRate;
 
-    // Trend data for chart
-    private List<MonthlyCount> monthlyTrend;
+    // ── Gamification Stats ───────────────────────────────────────
+    private int totalXp;
+    private String currentLevel;
+    private int currentStreak;
+    private int longestStreak;
+    private boolean checkedInToday;
+    private int progressPercent; // % toward next level
+    private String nextLevel;
+    private int totalCheckins;
 
-    // Status breakdown for pie chart
+    // ── Practice Stats ───────────────────────────────────────────
+    private long totalQuestionsAnswered;
+    private double averageInterviewScore; // avg across all sessions
+    private long totalPracticeSessions;
+
+    // ── Profile ──────────────────────────────────────────────────
+    private int profileCompletion;
+
+    // ── Chart Data ───────────────────────────────────────────────
+    private List<MonthlyCount> monthlyTrend;
     private List<StatusCount> statusBreakdown;
 
-    @Getter @Setter @AllArgsConstructor @NoArgsConstructor
+    // ── Recent Activity ──────────────────────────────────────────
+    private List<RecentActivity> recentActivity;
+
+    // ── Inner classes ────────────────────────────────────────────
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class MonthlyCount {
-        private String month;   // "Jan 2025"
+        private String month;
         private long count;
     }
 
-    @Getter @Setter @AllArgsConstructor @NoArgsConstructor
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class StatusCount {
         private String status;
         private long count;
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class RecentActivity {
+        private String type; // "APPLICATION", "XP", "PRACTICE"
+        private String title;
+        private String subtitle;
+        private String time;
+        private String icon;
+        private String color;
+    }
 }
+
