@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { resumeApi } from '../../api/resumeApi';
 import ResumeGenerator from './ResumeGenerator';
 import toast from 'react-hot-toast';
+import AtsScanner from './AtsScanner';
 
 export default function ResumePage() {
   const [activeTab, setActiveTab]   = useState('manager');
@@ -300,6 +301,19 @@ export default function ResumePage() {
 
       {/* ── AI Generator Tab ─────────────────────────────────── */}
       {activeTab === 'generator' && <ResumeGenerator />}
+
+      {activeTab === 'ats' && <AtsScanner />}
+
+      <button
+        onClick={() => setActiveTab('ats')}
+        className={`px-4 py-2 rounded-lg text-sm font-medium
+          transition-colors
+          ${activeTab === 'ats'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white border border-gray-300 text-gray-600'
+                + ' hover:bg-gray-50'}`}>
+        🎯 ATS Scanner
+      </button>
 
     </div>
   );
