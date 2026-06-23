@@ -16,9 +16,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import com.itextpdf.text.pdf.draw.LineSeparator;
 
 import java.io.ByteArrayOutputStream;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
