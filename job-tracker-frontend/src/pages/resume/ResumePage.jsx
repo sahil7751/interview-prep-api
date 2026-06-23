@@ -1,6 +1,67 @@
 import { useEffect, useState } from 'react';
 import { resumeApi } from '../../api/resumeApi';
 import toast from 'react-hot-toast';
+import ResumeGenerator from './ResumeGenerator';
+
+import ResumeGenerator from './ResumeGenerator';
+
+export default function ResumePage() {
+  const [activeTab, setActiveTab] = useState('manager');
+
+  // ... existing state ...
+
+  return (
+    <div className="space-y-6">
+
+      {/* Header with Tabs */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">
+          Resume
+        </h2>
+        <p className="text-gray-500 text-sm mt-0.5">
+          Upload resumes or generate one with AI
+        </p>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setActiveTab('manager')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium
+            transition-colors
+            ${activeTab === 'manager'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-600'
+                  + ' hover:bg-gray-50'}`}>
+          📁 Resume Manager
+        </button>
+        <button
+          onClick={() => setActiveTab('generator')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium
+            transition-colors
+            ${activeTab === 'generator'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-600'
+                  + ' hover:bg-gray-50'}`}>
+          ✨ AI Resume Generator
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'manager' && (
+        // ... paste all your existing ResumePage JSX here
+        // (the upload zone + resume list)
+        <ResumeManagerContent />
+      )}
+
+      {activeTab === 'generator' && (
+        <ResumeGenerator />
+      )}
+    </div>
+  );
+}
+
+const [activeTab, setActiveTab] = useState('manager');
 
 export default function ResumePage() {
   const [resumes, setResumes]     = useState([]);
@@ -99,13 +160,33 @@ export default function ResumePage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">
-          Resume Manager
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900">Resume</h2>
         <p className="text-gray-500 text-sm mt-0.5">
-          Upload and manage multiple resume versions
+          Upload resumes or generate one with AI
         </p>
       </div>
+
+      {/* Tab Switcher */}
+    <div className="flex gap-2">
+      <button
+        onClick={() => setActiveTab('manager')}
+        className={`px-4 py-2 rounded-lg text-sm font-medium
+          transition-colors
+          ${activeTab === 'manager'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
+        📁 Resume Manager
+      </button>
+      <button
+        onClick={() => setActiveTab('generator')}
+        className={`px-4 py-2 rounded-lg text-sm font-medium
+          transition-colors
+          ${activeTab === 'generator'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
+        ✨ AI Resume Generator
+      </button>
+    </div>
 
       {/* Upload Zone */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
