@@ -3,6 +3,7 @@ import { resumeApi } from '../../api/resumeApi';
 import ResumeGenerator from './ResumeGenerator';
 import toast from 'react-hot-toast';
 import AtsScanner from './AtsScanner';
+import JobMatch from './JobMatch';
 
 export default function ResumePage() {
   const [activeTab, setActiveTab]   = useState('manager');
@@ -109,29 +110,52 @@ export default function ResumePage() {
         </p>
       </div>
 
-      {/* Tab Switcher */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setActiveTab('manager')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium
-            transition-colors
-            ${activeTab === 'manager'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-600'
-                  + ' hover:bg-gray-50'}`}>
-          📁 Resume Manager
-        </button>
-        <button
-          onClick={() => setActiveTab('generator')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium
-            transition-colors
-            ${activeTab === 'generator'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-600'
-                  + ' hover:bg-gray-50'}`}>
-          ✨ AI Resume Generator
-        </button>
-      </div>
+      {/* Tab Switcher — ALL 4 tabs in one row */}
+<div className="flex gap-2 flex-wrap">
+  <button
+    onClick={() => setActiveTab('manager')}
+    className={`px-4 py-2 rounded-lg text-sm font-medium
+      transition-colors
+      ${activeTab === 'manager'
+          ? 'bg-indigo-600 text-white'
+          : 'bg-white border border-gray-300 text-gray-600'
+            + ' hover:bg-gray-50'}`}>
+    📁 Resume Manager
+  </button>
+
+  <button
+    onClick={() => setActiveTab('generator')}
+    className={`px-4 py-2 rounded-lg text-sm font-medium
+      transition-colors
+      ${activeTab === 'generator'
+          ? 'bg-indigo-600 text-white'
+          : 'bg-white border border-gray-300 text-gray-600'
+            + ' hover:bg-gray-50'}`}>
+    ✨ AI Resume Generator
+  </button>
+
+  <button
+    onClick={() => setActiveTab('ats')}
+    className={`px-4 py-2 rounded-lg text-sm font-medium
+      transition-colors
+      ${activeTab === 'ats'
+          ? 'bg-indigo-600 text-white'
+          : 'bg-white border border-gray-300 text-gray-600'
+            + ' hover:bg-gray-50'}`}>
+    🎯 ATS Scanner
+  </button>
+
+  <button
+    onClick={() => setActiveTab('jobmatch')}
+    className={`px-4 py-2 rounded-lg text-sm font-medium
+      transition-colors
+      ${activeTab === 'jobmatch'
+          ? 'bg-indigo-600 text-white'
+          : 'bg-white border border-gray-300 text-gray-600'
+            + ' hover:bg-gray-50'}`}>
+    🔍 Job Match
+  </button>
+</div>
 
       {/* ── Resume Manager Tab ───────────────────────────────── */}
       {activeTab === 'manager' && (
@@ -301,19 +325,10 @@ export default function ResumePage() {
 
       {/* ── AI Generator Tab ─────────────────────────────────── */}
       {activeTab === 'generator' && <ResumeGenerator />}
-
       {activeTab === 'ats' && <AtsScanner />}
+      {activeTab === 'jobmatch' && <JobMatch />}
 
-      <button
-        onClick={() => setActiveTab('ats')}
-        className={`px-4 py-2 rounded-lg text-sm font-medium
-          transition-colors
-          ${activeTab === 'ats'
-              ? 'bg-indigo-600 text-white'
-              : 'bg-white border border-gray-300 text-gray-600'
-                + ' hover:bg-gray-50'}`}>
-        🎯 ATS Scanner
-      </button>
+
 
     </div>
   );
