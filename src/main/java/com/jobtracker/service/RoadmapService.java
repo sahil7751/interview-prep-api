@@ -99,18 +99,31 @@ public class RoadmapService {
     }
 
     // ── GET ALL ROADMAPS ─────────────────────────────────────────
+    @Transactional(readOnly = true)
     public List<RoadmapResponse> getAllRoadmaps() {
-        User user = securityUtils.getCurrentUser();
-        return roadmapRepository
-                .findByUserOrderByCreatedAtDesc(user)
-                .stream()
-                .map(r -> toResponse(r, r.getMilestones() != null
-                        ? r.getMilestones()
-                        : List.of()))
-                .toList();
+            User user = securityUtils.getCurrentUser();
+            return roadmapRepository
+                            .findByUserOrderByCreatedAtDesc(user)
+                            .stream()
+                            .map(r -> RoadmapResponse.builder()
+                                            .id(r.getId())
+                                            .targetRole(r.getTargetRole())
+                                            .experienceLevel(r.getExperienceLevel())
+                                            .currentSkills(r.getCurrentSkills())
+                                            .durationWeeks(r.getDurationWeeks())
+                                            .totalMilestones(r.getTotalMilestones())
+                                            .completedMilestones(r.getCompletedMilestones())
+                                            .completionPercent(r.getCompletionPercent())
+                                            .active(r.isActive())
+                                            .createdAt(r.getCreatedAt())
+                                            .weeklyPlan(new java.util.TreeMap<>())
+                                            .weekSummaries(new java.util.ArrayList<>())
+                                            .build())
+                            .toList();
     }
 
     // ── GET ONE ROADMAP ──────────────────────────────────────────
+    @Transactional(readOnly = true)
     public RoadmapResponse getRoadmap(Long id) {
         User user = securityUtils.getCurrentUser();
         SkillRoadmap roadmap = roadmapRepository
