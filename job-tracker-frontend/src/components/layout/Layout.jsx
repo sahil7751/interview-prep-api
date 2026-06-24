@@ -10,6 +10,7 @@ const navItems = [
   { to: '/interviews',    icon: '📅', label: 'Interviews'    },
   { to: '/interview-practice', icon: '🧠', label: 'AI Practice'},
   { to: '/resume',        icon: '📝', label: 'Resume'        },
+  { to: '/roadmap',       icon: '🗺️', label: 'Skill Roadmap' },
   { to: '/ai',            icon: '✨', label: 'AI Assistant'  },
   { to: '/profile',       icon: '👤', label: 'Profile'       },
 ];

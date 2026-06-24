@@ -13,6 +13,7 @@ import ResumePage from './pages/resume/ResumePage';
 import AIAssistant from './pages/ai/AIAssistant';
 import ProfilePage from './pages/profile/ProfilePage';
 import InterviewPractice from './pages/interview-practice/InterviewPractice';
+import RoadmapPage from './pages/roadmap/RoadmapPage';
 
 export default function App() {
   return (
@@ -96,6 +97,13 @@ export default function App() {
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+          <Route path="/roadmap" element={
+            <PrivateRoute>
+              <Layout><RoadmapPage /></Layout>
+            </PrivateRoute>
+          } />
+          
         </Routes>
       </BrowserRouter>
     </AuthProvider>
