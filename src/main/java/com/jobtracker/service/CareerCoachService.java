@@ -171,46 +171,60 @@ public class CareerCoachService {
 
     // ── GROQ CALL ────────────────────────────────────────────────
     private String callGroq(List<Map<String, String>> messages) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(groqApiKey);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.setBearerAuth(groqApiKey);
 
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", groqModel);
-        body.put("messages", messages);
-        body.put("temperature", 0.7); // more conversational
-        body.put("max_tokens", 1024);
+    Map<String, Object> body = new LinkedHashMap<>();
+    body.put("model",       groqModel);
+    body.put("messages",    messages);
+    body.put("temperature", 0.7);
+    body.put("max_tokens",  1024);
 
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+    HttpEntity<Map<String, Object>> entity =
+            new HttpEntity<>(body, headers);
 
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    groqApiUrl, HttpMethod.POST,
-                    entity, Map.class);
+    try {
+        ResponseEntity<Map> response = restTemplate.exchange(
+                groqApiUrl, HttpMethod.POST,
+                entity, Map.class);
 
-            Map<?, ?> rb = response.getBody();
-            if (rb == null) {
-                throw new RuntimeException("Empty response");
-            }
-            List<?> choices = (List<?>) rb.get("choices");
-            Map<?, ?> choice = (Map<?, ?>) choices.get(0);
-            Map<?, ?> msg = (Map<?, ?>) choice.get("message");
-
-            // Get token usage
-            Map<?, ?> usage = (Map<?, ?>) rb.get("usage");
-            int tokens = usage != null
-                    ? ((Number) usage.getOrDefault(
-                            "total_tokens", 0)).intValue()
-                    : 0;
-
-            log.info("Career coach response: {} tokens", tokens);
-            return msg.get("content").toString();
-
-        } catch (Exception e) {
-            log.error("Groq error: {}", e.getMessage());
-            throw new RuntimeException(
-                    "AI service error: " + e.getMessage());
+        Map<?, ?> rb = response.getBody();
+        if (rb == null) {
+            throw new RuntimeException("Empty response");
         }
+
+        List<?> choices = (List<?>) rb.get("choices");
+        if (choices == null || choices.isEmpty()) {
+            throw new RuntimeException("No choices in response");
+        }
+
+        Map<?, ?> choice = (Map<?, ?>) choices.get(0);
+        Map<?, ?> msg    = (Map<?, ?>) choice.get("message");
+        if (msg == null) {
+            throw new RuntimeException("No message in response");
+        }
+
+        // ── Safe token logging ──────────────────────────────
+        try {
+            Object usageObj = rb.get("usage");
+            if (usageObj instanceof Map<?, ?> usage) {
+                Object tokens = usage.get("total_tokens");
+                log.info("Career coach response: {} tokens",
+                         tokens != null ? tokens : "unknown");
+            }
+        } catch (Exception ignored) {
+            // Token logging is optional — never block response
+        }
+        // ────────────────────────────────────────────────────
+
+        return msg.get("content").toString();
+
+    } catch (Exception e) {
+        log.error("Groq error: {}", e.getMessage());
+        throw new RuntimeException(
+                "AI service error: " + e.getMessage());
     }
+}
 }
 
