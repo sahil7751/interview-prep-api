@@ -11,6 +11,7 @@ const navItems = [
   { to: '/interview-practice', icon: '🧠', label: 'AI Practice'},
   { to: '/resume',        icon: '📝', label: 'Resume'        },
   { to: '/roadmap',       icon: '🗺️', label: 'Skill Roadmap' },
+  { to: '/career-coach',  icon: '💬', label: 'Career Coach'  },
   { to: '/ai',            icon: '✨', label: 'AI Assistant'  },
   { to: '/profile',       icon: '👤', label: 'Profile'       },
 ];

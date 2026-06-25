@@ -14,6 +14,7 @@ import AIAssistant from './pages/ai/AIAssistant';
 import ProfilePage from './pages/profile/ProfilePage';
 import InterviewPractice from './pages/interview-practice/InterviewPractice';
 import RoadmapPage from './pages/roadmap/RoadmapPage';
+import CareerCoach from './pages/career-coach/CareerCoach';
 
 export default function App() {
   return (
@@ -101,6 +102,12 @@ export default function App() {
           <Route path="/roadmap" element={
             <PrivateRoute>
               <Layout><RoadmapPage /></Layout>
+            </PrivateRoute>
+          } />
+
+          <Route path="/career-coach" element={
+            <PrivateRoute>
+              <Layout><CareerCoach /></Layout>
             </PrivateRoute>
           } />
           
