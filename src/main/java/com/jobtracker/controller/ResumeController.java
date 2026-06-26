@@ -1,10 +1,8 @@
 package com.jobtracker.controller;
 
-import com.jobtracker.dto.response.ApiResponse;
-import com.jobtracker.dto.response.ResumeResponse;
+import com.jobtracker.dto.request.ResumeMetadataRequest;
+import com.jobtracker.dto.response.*;
 import com.jobtracker.service.ResumeService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
@@ -18,36 +16,30 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/resumes")
 @RequiredArgsConstructor
-@Tag(name = "Resumes", description = "Upload, manage, and download resumes")
 public class ResumeController {
 
     private final ResumeService resumeService;
 
-    // POST /api/v1/resumes/upload
-    // multipart/form-data: file + optional label
+    // ── Existing endpoints (keep all) ─────────────────────────
+
     @PostMapping("/upload")
-        @Operation(summary = "Upload a resume")
     public ResponseEntity<ApiResponse<ResumeResponse>> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "label", required = false) String label)
             throws IOException {
-
-        ResumeResponse response = resumeService.upload(file, label);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Resume uploaded", response));
+                .body(ApiResponse.success("Resume uploaded",
+                        resumeService.upload(file, label)));
     }
 
-    // GET /api/v1/resumes
     @GetMapping
-        @Operation(summary = "Get all resumes")
     public ResponseEntity<ApiResponse<List<ResumeResponse>>> getAll() {
         return ResponseEntity.ok(
-                ApiResponse.success("Resumes fetched", resumeService.getAll()));
+                ApiResponse.success("Resumes fetched",
+                        resumeService.getAll()));
     }
 
-    // GET /api/v1/resumes/{id}
     @GetMapping("/{id}")
-        @Operation(summary = "Get a resume by ID")
     public ResponseEntity<ApiResponse<ResumeResponse>> getById(
             @PathVariable Long id) {
         return ResponseEntity.ok(
@@ -55,25 +47,19 @@ public class ResumeController {
                         resumeService.getById(id)));
     }
 
-    // GET /api/v1/resumes/{id}/download
     @GetMapping("/{id}/download")
-        @Operation(summary = "Download a resume")
     public ResponseEntity<Resource> download(
             @PathVariable Long id) throws IOException {
-
         Resource resource = resumeService.download(id);
-
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" +
-                                resource.getFilename() + "\"")
+                        "inline; filename=\""
+                                + resource.getFilename() + "\"")
                 .body(resource);
     }
 
-    // PATCH /api/v1/resumes/{id}/activate
     @PatchMapping("/{id}/activate")
-        @Operation(summary = "Set a resume as active")
     public ResponseEntity<ApiResponse<ResumeResponse>> setActive(
             @PathVariable Long id) {
         return ResponseEntity.ok(
@@ -81,31 +67,74 @@ public class ResumeController {
                         resumeService.setActive(id)));
     }
 
-    // PATCH /api/v1/resumes/{id}/label
     @PatchMapping("/{id}/label")
-        @Operation(summary = "Update a resume label")
     public ResponseEntity<ApiResponse<ResumeResponse>> updateLabel(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
-
         String label = body.get("label");
         if (label == null || label.isBlank()) {
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Label cannot be empty"));
+                    .body(ApiResponse.error("Label required"));
         }
-
         return ResponseEntity.ok(
                 ApiResponse.success("Label updated",
                         resumeService.updateLabel(id, label)));
     }
 
-    // DELETE /api/v1/resumes/{id}
     @DeleteMapping("/{id}")
-        @Operation(summary = "Delete a resume")
     public ResponseEntity<ApiResponse<String>> delete(
             @PathVariable Long id) {
         resumeService.delete(id);
         return ResponseEntity.ok(
                 ApiResponse.success("Resume deleted", null));
+    }
+
+    // ── New endpoints ─────────────────────────────────────────
+
+    // PUT /api/v1/resumes/{id}/metadata
+    @PutMapping("/{id}/metadata")
+    public ResponseEntity<ApiResponse<ResumeResponse>> updateMetadata(
+            @PathVariable Long id,
+            @RequestBody ResumeMetadataRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Metadata updated",
+                        resumeService.updateMetadata(id, request)));
+    }
+
+    // POST /api/v1/resumes/{id}/scan-ats
+    @PostMapping("/{id}/scan-ats")
+    public ResponseEntity<ApiResponse<ResumeResponse>> scanAts(
+            @PathVariable Long id,
+            @RequestParam(value = "jobDescription", required = false) String jobDescription) throws Exception {
+        return ResponseEntity.ok(
+                ApiResponse.success("ATS scan complete",
+                        resumeService.scanAndSaveAts(
+                                id, jobDescription)));
+    }
+
+    // GET /api/v1/resumes/compare?id1=1&id2=2
+    @GetMapping("/compare")
+    public ResponseEntity<ApiResponse<ResumeComparisonResponse>> compare(
+            @RequestParam Long id1,
+            @RequestParam Long id2) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Comparison complete",
+                        resumeService.compare(id1, id2)));
+    }
+
+    // GET /api/v1/resumes/role-tags
+    @GetMapping("/role-tags")
+    public ResponseEntity<ApiResponse<List<String>>> getRoleTags() {
+        return ResponseEntity.ok(
+                ApiResponse.success("Role tags fetched",
+                        resumeService.getRoleTags()));
+    }
+
+    // GET /api/v1/resumes/by-role/{role}
+    @GetMapping("/by-role/{role}")
+    public ResponseEntity<ApiResponse<List<ResumeResponse>>> getByRole(@PathVariable String role) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Resumes fetched",
+                        resumeService.getByRoleTag(role)));
     }
 }

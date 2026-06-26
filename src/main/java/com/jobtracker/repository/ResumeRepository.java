@@ -12,26 +12,33 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ResumeRepository extends JpaRepository<Resume, Long> {
+public interface ResumeRepository
+        extends JpaRepository<Resume, Long> {
 
-    // All resumes for a user, newest first
     List<Resume> findByUserOrderByVersionNumberDesc(User user);
 
-    // Secure single fetch
     Optional<Resume> findByIdAndUser(Long id, User user);
 
-    // Get current max version for a user
-    @Query("SELECT COALESCE(MAX(r.versionNumber), 0) FROM Resume r WHERE r.user = :user")
+    @Query("SELECT COALESCE(MAX(r.versionNumber), 0) "
+        + "FROM Resume r WHERE r.user = :user")
     Integer findMaxVersionByUser(@Param("user") User user);
 
-    // Get currently active resume
     Optional<Resume> findByUserAndIsActiveTrue(User user);
 
-    // Deactivate all resumes for a user (before setting a new active one)
     @Modifying
-    @Query("UPDATE Resume r SET r.isActive = false WHERE r.user = :user")
+    @Query("UPDATE Resume r SET r.isActive = false "
+         + "WHERE r.user = :user")
     void deactivateAllForUser(@Param("user") User user);
 
-    // Count resumes for a user
     long countByUser(User user);
+
+    // ── New queries ───────────────────────────────────────────
+    List<Resume> findByUserAndRoleTagOrderByVersionNumberDesc(
+            User user, String roleTag);
+
+    @Query("SELECT DISTINCT r.roleTag FROM Resume r "
+         + "WHERE r.user = :user AND r.roleTag IS NOT NULL")
+    List<String> findDistinctRoleTagsByUser(
+            @Param("user") User user);
 }
+

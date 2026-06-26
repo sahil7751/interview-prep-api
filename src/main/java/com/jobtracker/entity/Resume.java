@@ -2,7 +2,6 @@ package com.jobtracker.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,13 +25,13 @@ public class Resume {
     private String fileName;
 
     @Column(name = "original_name", nullable = false)
-    private String originalName;      // original filename user uploaded
+    private String originalName;
 
     @Column(name = "file_path", nullable = false)
-    private String filePath;          // path on disk
+    private String filePath;
 
     @Column(name = "file_size")
-    private Long fileSize;            // bytes
+    private Long fileSize;
 
     @Column(name = "version_number")
     private Integer versionNumber;
@@ -41,7 +40,22 @@ public class Resume {
     private Boolean isActive;
 
     @Column(name = "label")
-    private String label;             // e.g. "Software Engineer Resume v3"
+    private String label;
+
+    @Column(name = "role_tag")
+    private String roleTag; // e.g. "Backend Developer"
+
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes; // personal notes about this version
+
+    @Column(name = "ats_score")
+    private Integer atsScore; // stored after scanning
+
+    @Column(name = "ats_label")
+    private String atsLabel; // Excellent / Good / Average / Poor
+
+    @Column(name = "target_companies")
+    private String targetCompanies; // comma-separated
 
     @Column(name = "uploaded_at")
     private LocalDateTime uploadedAt;
@@ -49,6 +63,8 @@ public class Resume {
     @PrePersist
     protected void onCreate() {
         uploadedAt = LocalDateTime.now();
-        if (isActive == null) isActive = false;
+        if (isActive == null)
+            isActive = false;
     }
 }
+
