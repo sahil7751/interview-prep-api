@@ -151,6 +151,8 @@ public class DashboardService {
                                 .profileCompletion(profileCompletion)
                                 // Activity
                                 .recentActivity(recentActivity)
+                                .xpProgress(xpProgress)
+                                .xpForNextLevel(xpForNextLevel)
                                 .build();
         }
 
@@ -226,4 +228,4 @@ public class DashboardService {
                 // Sort by time desc (already ordered from DB)
                 return activities;
         }
-}
+} 
