@@ -13,14 +13,9 @@ public class SwaggerConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Job Tracker API")
-                        .description("""
-                                AI-Powered Job Application Tracker — REST API Documentation.
-
-                                Use the Authorize button to enter your JWT token.
-                                Format: Bearer <your_token>
-                                """)
-                        .version("1.0.0")
+                        .title("CareerPilot AI API")
+                        .description("AI-Powered Career & Placement Preparation Platform")
+                        .version("2.0.0")
                         .contact(new Contact()
                                 .name("Job Tracker Team")
                                 .email("support@jobtracker.com"))
