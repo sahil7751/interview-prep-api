@@ -2,7 +2,7 @@ package com.jobtracker.dto.response;
 
 import lombok.*;
 import java.util.List;
-
+  
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,6 +19,8 @@ public class DashboardResponse {
     private long offerReceivedCount;
     private double successRate;
     private double rejectionRate;
+    private int xpProgress; // XP within current level
+    private int xpForNextLevel; // XP needed for next level
 
     // ── Gamification Stats ───────────────────────────────────────
     private int totalXp;

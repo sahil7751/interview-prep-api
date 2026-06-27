@@ -43,85 +43,68 @@ public class GamificationService {
     // ── DAILY CHECK-IN ───────────────────────────────────────────
     @Transactional
     public CheckinResponse checkIn() {
-        User user = securityUtils.getCurrentUser();
-        UserGamification stats = getOrCreate(user);
 
-        LocalDate today = LocalDate.now();
+            User user = securityUtils.getCurrentUser();
 
-        // Already checked in today
-        if (today.equals(stats.getLastCheckinDate())) {
+            recordActivity(user, XpAction.DAILY_CHECKIN);
+
+            UserGamification stats = getOrCreate(user);
+
             return CheckinResponse.builder()
-                    .alreadyCheckedIn(true)
-                    .xpEarned(0)
-                    .totalXp(stats.getTotalXp())
-                    .currentStreak(stats.getCurrentStreak())
-                    .currentLevel(stats.getCurrentLevel())
-                    .message("You already checked in today! "
-                            + "Come back tomorrow 🌟")
-                    .build();
-        }
+                            .alreadyCheckedIn(false)
+                            .xpEarned(XpAction.DAILY_CHECKIN.getXpPoints())
+                            .totalXp(stats.getTotalXp())
+                            .currentStreak(stats.getCurrentStreak())
+                            .currentLevel(stats.getCurrentLevel())
+                            .message("Activity recorded!")
+                            .build();
+    }
 
-        // Update streak
-        if (stats.getLastCheckinDate() != null
-                && stats.getLastCheckinDate()
-                        .equals(today.minusDays(1))) {
-            // Consecutive day — extend streak
-            stats.setCurrentStreak(stats.getCurrentStreak() + 1);
-        } else {
-            // Streak broken or first check-in
-            stats.setCurrentStreak(1);
-        }
+    // ── RECORD ACTIVITY (replaces manual check-in) ───────────────
+    @Transactional
+    public void recordActivity(User user, XpAction action) {
+            UserGamification stats = getOrCreate(user);
 
-        // Update longest streak
-        if (stats.getCurrentStreak() > stats.getLongestStreak()) {
-            stats.setLongestStreak(stats.getCurrentStreak());
-        }
+            LocalDate today = LocalDate.now();
 
-        // Award XP
-        int xpEarned = XpAction.DAILY_CHECKIN.getXpPoints();
-        stats.setTotalXp(stats.getTotalXp() + xpEarned);
-        stats.setLastCheckinDate(today);
-        stats.setTotalCheckins(stats.getTotalCheckins() + 1);
+            // Auto-continue streak on first activity of the day
+            if (!today.equals(stats.getLastCheckinDate())) {
+                    if (stats.getLastCheckinDate() != null
+                                    && stats.getLastCheckinDate()
+                                                    .equals(today.minusDays(1))) {
+                            stats.setCurrentStreak(stats.getCurrentStreak() + 1);
+                    } else {
+                            stats.setCurrentStreak(1);
+                    }
+                    if (stats.getCurrentStreak() > stats.getLongestStreak()) {
+                            stats.setLongestStreak(stats.getCurrentStreak());
+                    }
+                    stats.setLastCheckinDate(today);
+                    stats.setTotalCheckins(stats.getTotalCheckins() + 1);
 
-        // Recalculate level
-        String newLevel = calculateLevel(stats.getTotalXp());
-        stats.setCurrentLevel(newLevel);
-        gamificationRepository.save(stats);
+                    // Award daily bonus XP
+                    int dailyBonus = XpAction.DAILY_CHECKIN.getXpPoints();
+                    stats.setTotalXp(stats.getTotalXp() + dailyBonus);
+                    logTransaction(user, XpAction.DAILY_CHECKIN, dailyBonus);
+                    log.info("Auto daily bonus: {} streak={}",
+                                    user.getEmail(), stats.getCurrentStreak());
+            }
 
-        // Log transaction
-        logTransaction(user, XpAction.DAILY_CHECKIN, xpEarned);
+            // Award action XP
+            int xp = action.getXpPoints();
+            stats.setTotalXp(stats.getTotalXp() + xp);
+            stats.setCurrentLevel(calculateLevel(stats.getTotalXp()));
+            gamificationRepository.save(stats);
+            logTransaction(user, action, xp);
 
-        log.info("Check-in: {} earned {} XP, streak: {}",
-                user.getEmail(), xpEarned, stats.getCurrentStreak());
-
-        String streakMsg = stats.getCurrentStreak() > 1
-                ? " 🔥 " + stats.getCurrentStreak() + " day streak!"
-                : " Keep it up!";
-
-        return CheckinResponse.builder()
-                .alreadyCheckedIn(false)
-                .xpEarned(xpEarned)
-                .totalXp(stats.getTotalXp())
-                .currentStreak(stats.getCurrentStreak())
-                .currentLevel(newLevel)
-                .message("+5 XP earned!" + streakMsg)
-                .build();
+            log.info("XP recorded: {} got {} XP for {}",
+                            user.getEmail(), xp, action.name());
     }
 
     // ── AWARD XP (called from other services) ───────────────────
     @Transactional
     public void awardXp(User user, XpAction action) {
-        UserGamification stats = getOrCreate(user);
-
-        int xpEarned = action.getXpPoints();
-        stats.setTotalXp(stats.getTotalXp() + xpEarned);
-        stats.setCurrentLevel(calculateLevel(stats.getTotalXp()));
-        gamificationRepository.save(stats);
-
-        logTransaction(user, action, xpEarned);
-
-        log.info("XP awarded: {} got {} XP for {}",
-                user.getEmail(), xpEarned, action.name());
+            recordActivity(user, action);
     }
 
     // ── HELPERS ──────────────────────────────────────────────────
