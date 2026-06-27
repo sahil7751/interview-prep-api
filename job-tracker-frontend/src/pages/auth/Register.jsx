@@ -67,11 +67,17 @@ export default function Register() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl font-bold">J</span>
+          <div className="w-14 h-14 bg-gradient-to-br from-indigo-600
+                          to-purple-600 rounded-2xl flex items-center
+                          justify-center mx-auto mb-4">
+            <span className="text-white text-xl font-bold">CP</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Create account</h1>
-          <p className="text-gray-500 mt-1">Start tracking your job applications</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Join CareerPilot AI
+          </h1>
+          <p className="text-gray-500 mt-1">
+            AI-Powered Career & Placement Platform
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
