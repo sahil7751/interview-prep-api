@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { gamificationApi } from '../../api/gamificationApi';
-import toast from 'react-hot-toast';
 
 const LEVEL_COLORS = {
   'Beginner':          'bg-gray-400',
@@ -19,8 +18,7 @@ const LEVEL_ICONS = {
 };
 
 export default function XpBar() {
-  const [stats, setStats]         = useState(null);
-  const [checking, setChecking]   = useState(false);
+  const [stats, setStats] = useState(null);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -31,32 +29,14 @@ export default function XpBar() {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  const handleCheckIn = async () => {
-    setChecking(true);
-    try {
-      const res = await gamificationApi.checkIn();
-      const d   = res.data.data;
-
-      if (d.alreadyCheckedIn) {
-        toast(d.message, { icon: '⏰' });
-      } else {
-        toast.success(d.message);
-        fetchStats();
-      }
-    } catch {
-      toast.error('Check-in failed');
-    } finally {
-      setChecking(false);
-    }
-  };
-
   if (!stats) return null;
 
-  const levelColor = LEVEL_COLORS[stats.currentLevel] || 'bg-indigo-500';
-  const levelIcon  = LEVEL_ICONS[stats.currentLevel]  || '🌱';
+  const levelColor = LEVEL_COLORS[stats.currentLevel]
+                  || 'bg-indigo-500';
+  const levelIcon  = LEVEL_ICONS[stats.currentLevel] || '🌱';
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3">
 
       {/* Level Badge */}
       <div className="flex items-center gap-1.5">
@@ -96,29 +76,6 @@ export default function XpBar() {
           {stats.currentStreak}
         </span>
       </div>
-
-      {/* Check-in Button */}
-      <button
-        onClick={handleCheckIn}
-        disabled={checking || stats.checkedInToday}
-        className={`px-3 py-1.5 rounded-lg text-xs font-medium
-          transition-colors flex items-center gap-1
-          ${stats.checkedInToday
-              ? 'bg-green-100 text-green-700 cursor-default'
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}>
-        {checking ? (
-          <div className="w-3 h-3 border-2 border-white
-                          border-t-transparent rounded-full
-                          animate-spin"/>
-        ) : stats.checkedInToday ? (
-          <>✅ Checked In</>
-        ) : (
-          <>⚡ Check In (+5 XP)</>
-        )}
-      </button>
-
     </div>
   );
 }
-
-
