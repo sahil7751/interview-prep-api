@@ -1,21 +1,20 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser]           = useState(null);
+  const [token, setToken]         = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [pictureBust, setPictureBust] = useState(Date.now());
 
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-
+    const savedUser  = localStorage.getItem('user');
     if (savedToken && savedUser) {
       setToken(savedToken);
       setUser(JSON.parse(savedUser));
     }
-
     setLoading(false);
   }, []);
 
@@ -33,20 +32,25 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('user');
   };
 
+  const refreshPicture = () => {
+    setPictureBust(Date.now());
+  };
+
+  const updateUser = (updates) => {
+    const updated = { ...user, ...updates };
+    setUser(updated);
+    localStorage.setItem('user', JSON.stringify(updated));
+  };
+
   const isAdmin = () => user?.role === 'ADMIN';
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        login,
-        logout,
-        isAdmin,
-        isAuthenticated: !!token,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, token, loading, login, logout,
+      isAdmin, updateUser, refreshPicture,
+      pictureBust,
+      isAuthenticated: !!token
+    }}>
       {children}
     </AuthContext.Provider>
   );
