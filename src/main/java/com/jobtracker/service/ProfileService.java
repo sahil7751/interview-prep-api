@@ -7,6 +7,7 @@ import com.jobtracker.dto.response.ProfileCompletionResponse;
 import com.jobtracker.dto.response.ProfileResponse;
 import com.jobtracker.entity.User;
 import com.jobtracker.entity.UserProfile;
+import com.jobtracker.repository.ResumeRepository;
 import com.jobtracker.repository.UserProfileRepository;
 import com.jobtracker.repository.UserRepository;
 import com.jobtracker.security.SecurityUtils;
@@ -22,6 +23,13 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.jobtracker.dto.response.ProfileReviewResponse;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,12 +39,25 @@ public class ProfileService {
     private final UserProfileRepository profileRepository;
     private final SecurityUtils securityUtils;
     private final PasswordEncoder passwordEncoder;
+    private final ResumeRepository resumeRepository;
+    private final RestTemplate restTemplate;
 
     @Value("${file.upload-dir:uploads/resumes}")
     private String uploadDir;
 
     @Value("${server.port:8081}")
     private String serverPort;
+
+    @Value("${groq.api.key:}")
+    private String groqApiKey;
+
+    @Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
+    private String groqApiUrl;
+
+    @Value("${groq.api.model:llama-3.3-70b-versatile}")
+    private String groqModel;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // ── GET PROFILE ──────────────────────────────────────────────
     public ProfileResponse getProfile() {
@@ -81,6 +102,14 @@ public class ProfileService {
         profile.setGithubUrl(req.getGithubUrl());
         profile.setLinkedinUrl(req.getLinkedinUrl());
         profile.setPortfolioUrl(req.getPortfolioUrl());
+        profile.setTargetRoleGoal(req.getTargetRoleGoal());
+        profile.setPreferredCompanies(req.getPreferredCompanies());
+        profile.setPreferredLocation(req.getPreferredLocation());
+        profile.setExpectedSalary(req.getExpectedSalary());
+        profile.setJobType(req.getJobType());
+        profile.setLeetcodeUrl(req.getLeetcodeUrl());
+        profile.setCodechefUrl(req.getCodechefUrl());
+        profile.setCodeforcesUrl(req.getCodeforcesUrl());
 
         // Convert skills list to comma-separated string
         if (req.getSkills() != null) {
@@ -222,8 +251,7 @@ public class ProfileService {
         }
     }
 
-    private ProfileResponse toResponse(User user,
-            UserProfile profile) {
+    private ProfileResponse toResponse(User user, UserProfile profile) {
         // Parse skills
         List<String> skillList = new ArrayList<>();
         if (profile.getSkills() != null
@@ -246,6 +274,9 @@ public class ProfileService {
         // Calculate completion
         ProfileCompletionResponse completion = getCompletionFor(
                 user, profile);
+
+                var activeResume = resumeRepository
+                .findByUserAndIsActiveTrue(user);
 
         return ProfileResponse.builder()
                 .id(user.getId())
@@ -271,11 +302,41 @@ public class ProfileService {
                 .profilePictureUrl(pictureUrl)
                 .completionPercentage(completion.getPercentage())
                 .updatedAt(profile.getUpdatedAt())
+                .targetRoleGoal(profile.getTargetRoleGoal())
+                .preferredCompanies(profile.getPreferredCompanies())
+                .preferredLocation(profile.getPreferredLocation())
+                .expectedSalary(profile.getExpectedSalary())
+                .jobType(profile.getJobType())
+                .leetcodeUrl(profile.getLeetcodeUrl())
+                .codechefUrl(profile.getCodechefUrl())
+                .codeforcesUrl(profile.getCodeforcesUrl())
+
+                .activeResumeVersion(
+                        activeResume
+                                .map(r -> r.getVersionNumber())
+                                .orElse(null))
+
+                .activeResumeAtsScore(
+                        activeResume
+                                .map(r -> r.getAtsScore())
+                                .orElse(null))
+
+                .activeResumeLabel(
+                        activeResume
+                                .map(r -> r.getLabel())
+                                .orElse(null))
+
+                .activeResumeUpdatedAt(
+                        activeResume
+                                .map(r -> r.getUploadedAt() != null
+                                        ? r.getUploadedAt().toLocalDate().toString()
+                                        : null)
+                                .orElse(null))
+
                 .build();
     }
 
-    private ProfileCompletionResponse getCompletionFor(
-            User user, UserProfile profile) {
+    private ProfileCompletionResponse getCompletionFor( User user, UserProfile profile) {
 
         List<String> completed = new ArrayList<>();
         List<String> missing = new ArrayList<>();
@@ -303,7 +364,120 @@ public class ProfileService {
                 .completedFields(completed)
                 .missingFields(missing)
                 .build();
-    }
+        
+            }
+
+            public ProfileReviewResponse reviewProfile() {
+                User user = securityUtils.getCurrentUser();
+                UserProfile profile = getOrCreateProfile(user);
+
+                String prompt = """
+                        You are an expert career counselor reviewing a student's profile.
+                        Analyze and respond ONLY with valid JSON, no markdown.
+
+                        Profile:
+                        Name: %s
+                        Skills: %s
+                        College: %s
+                        Degree: %s
+                        Branch: %s
+                        Graduation Year: %s
+                        CGPA: %s
+                        Target Role: %s
+                        Experience: %s years
+                        GitHub: %s
+                        LinkedIn: %s
+
+                        Return this exact JSON:
+                        {
+                          "overallScore": <0-100>,
+                          "placementReadiness": "<Ready|Almost Ready|Needs Work|Not Ready>",
+                          "strengths": ["<strength1>", "<strength2>"],
+                          "weaknesses": ["<weakness1>", "<weakness2>"],
+                          "missingSkills": ["<skill1>", "<skill2>"],
+                          "recommendedTechnologies": ["<tech1>", "<tech2>"],
+                          "resumeSuggestions": ["<suggestion1>", "<suggestion2>"],
+                          "recommendedCompanies": ["<company1>", "<company2>"],
+                          "summary": "<2-3 sentence overall assessment>"
+                        }
+                        """.formatted(
+                        user.getName(),
+                        profile.getSkills() != null
+                                ? profile.getSkills()
+                                : "Not specified",
+                        profile.getCollegeName() != null
+                                ? profile.getCollegeName()
+                                : "Not specified",
+                        profile.getDegree() != null
+                                ? profile.getDegree()
+                                : "Not specified",
+                        profile.getBranch() != null
+                                ? profile.getBranch()
+                                : "Not specified",
+                        profile.getGraduationYear() != null
+                                ? profile.getGraduationYear()
+                                : "Not specified",
+                        profile.getCgpa() != null
+                                ? profile.getCgpa()
+                                : "Not specified",
+                        profile.getTargetRoleGoal() != null
+                                ? profile.getTargetRoleGoal()
+                                : "Not specified",
+                        profile.getExperienceYears() != null
+                                ? profile.getExperienceYears()
+                                : 0,
+                        profile.getGithubUrl() != null
+                                ? "Present"
+                                : "Missing",
+                        profile.getLinkedinUrl() != null
+                                ? "Present"
+                                : "Missing");
+
+                try {
+                    String raw = callGroq(prompt);
+                    String cleaned = raw
+                            .replaceAll("(?s)```json\\s*", "")
+                            .replaceAll("(?s)```\\s*", "").trim();
+                    int s = cleaned.indexOf('{');
+                    int e = cleaned.lastIndexOf('}');
+                    if (s != -1 && e != -1)
+                        cleaned = cleaned.substring(s, e + 1);
+                    return objectMapper.readValue(cleaned,
+                            ProfileReviewResponse.class);
+                } catch (Exception ex) {
+                    log.error("Profile review failed: {}", ex.getMessage());
+                    throw new RuntimeException(
+                            "AI review failed: " + ex.getMessage());
+                }
+            }
+
+            private String callGroq(String prompt) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(
+                        org.springframework.http.MediaType.APPLICATION_JSON);
+                headers.setBearerAuth(groqApiKey);
+
+                java.util.Map<String, Object> message = java.util.Map.of(
+                        "role", "user", "content", prompt);
+                java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+                body.put("model", groqModel);
+                body.put("messages", java.util.List.of(message));
+                body.put("temperature", 0.3);
+                body.put("max_tokens", 1500);
+
+                HttpEntity<java.util.Map<String, Object>> entity = new org.springframework.http.HttpEntity<>(
+                        body, headers);
+
+                ResponseEntity<java.util.Map> response = restTemplate.exchange(groqApiUrl,
+                        HttpMethod.POST,
+                        entity, java.util.Map.class);
+
+                java.util.Map<?, ?> rb = response.getBody();
+                java.util.List<?> choices = (java.util.List<?>) rb.get("choices");
+                java.util.Map<?, ?> choice = (java.util.Map<?, ?>) choices.get(0);
+                java.util.Map<?, ?> msg = (java.util.Map<?, ?>) choice.get("message");
+                return msg.get("content").toString();
+            }
 }
 
 
