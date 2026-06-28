@@ -11,6 +11,21 @@ import java.util.List;
 @Builder
 public class ProfileResponse {
 
+    private String targetRoleGoal;
+    private String preferredCompanies;
+    private String preferredLocation;
+    private String expectedSalary;
+    private String jobType;
+    private String leetcodeUrl;
+    private String codechefUrl;
+    private String codeforcesUrl;
+
+    // Active resume info
+    private Integer activeResumeVersion;
+    private Integer activeResumeAtsScore;
+    private String activeResumeLabel;
+    private String activeResumeUpdatedAt;
+
     // Basic info (from User entity)
     private Long id;
     private String name;

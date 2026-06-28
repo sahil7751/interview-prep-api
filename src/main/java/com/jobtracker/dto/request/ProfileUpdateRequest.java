@@ -23,6 +23,14 @@ public class ProfileUpdateRequest {
     private String collegeName;
     private String degree;
     private String branch;
+    private String targetRoleGoal;
+    private String preferredCompanies;
+    private String preferredLocation;
+    private String expectedSalary;
+    private String jobType;
+    private String leetcodeUrl;
+    private String codechefUrl;
+    private String codeforcesUrl;
 
     @Min(value = 2000, message = "Enter a valid graduation year")
     @Max(value = 2035, message = "Enter a valid graduation year")
