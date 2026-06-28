@@ -67,34 +67,40 @@ public class ProfileController {
                         profileService.uploadPicture(file)));
     }
 
-    // GET /api/v1/profile/picture
     @GetMapping("/picture")
-    @Operation(summary = "Get profile picture")
     public ResponseEntity<Resource> getPicture() throws IOException {
-        User user = securityUtils.getCurrentUser();
-        UserProfile profile = profileRepository
-                .findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Profile not found"));
+            User user = securityUtils.getCurrentUser();
+            UserProfile profile = profileRepository
+                            .findByUser(user)
+                            .orElse(null);
 
-        if (profile.getProfilePicture() == null) {
-            return ResponseEntity.notFound().build();
-        }
+            if (profile == null || profile.getProfilePicture() == null) {
+                    return ResponseEntity.notFound().build();
+            }
 
-        Path picPath = Paths.get(uploadDir, "pictures",
-                String.valueOf(user.getId()),
-                profile.getProfilePicture());
+            Path picPath = Paths.get(uploadDir, "pictures",
+                            String.valueOf(user.getId()),
+                            profile.getProfilePicture());
 
-        Resource resource = new UrlResource(picPath.toUri());
-        if (!resource.exists()) {
-            return ResponseEntity.notFound().build();
-        }
+            Resource resource = new UrlResource(picPath.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                    return ResponseEntity.notFound().build();
+            }
 
-        String contentType = picPath.toString()
-                .endsWith(".png") ? "image/png" : "image/jpeg";
+            String filename = profile.getProfilePicture().toLowerCase();
+            String contentType = filename.endsWith(".png")
+                            ? "image/png"
+                            : filename.endsWith(".webp")
+                                            ? "image/webp"
+                                            : "image/jpeg";
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+            return ResponseEntity.ok()
+                            .contentType(MediaType.parseMediaType(contentType))
+                            .header(HttpHeaders.CACHE_CONTROL,
+                                            "no-cache, no-store, must-revalidate")
+                            .header(HttpHeaders.PRAGMA, "no-cache")
+                            .header(HttpHeaders.EXPIRES, "0")
+                            .body(resource);
     }
 
     // PUT /api/v1/profile/password
@@ -116,5 +122,14 @@ public class ProfileController {
                 ApiResponse.success("Completion fetched",
                         profileService.getCompletion()));
     }
+
+        @PostMapping("/review")
+        @Operation(summary = "AI profile review and analysis")
+        public ResponseEntity<ApiResponse<ProfileReviewResponse>>
+                reviewProfile() {
+        return ResponseEntity.ok(
+                ApiResponse.success("Profile reviewed",
+                        profileService.reviewProfile()));
+        }
 }
 
