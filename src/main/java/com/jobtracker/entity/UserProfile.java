@@ -77,6 +77,32 @@ public class UserProfile {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Career Goals
+    @Column(name = "target_role_goal")
+    private String targetRoleGoal;
+
+    @Column(name = "preferred_companies")
+    private String preferredCompanies;
+
+    @Column(name = "preferred_location")
+    private String preferredLocation;
+
+    @Column(name = "expected_salary")
+    private String expectedSalary;
+
+    @Column(name = "job_type")
+    private String jobType; // Full-time / Internship / Remote
+
+    // Extra social links
+    @Column(name = "leetcode_url")
+    private String leetcodeUrl;
+
+    @Column(name = "codechef_url")
+    private String codechefUrl;
+
+    @Column(name = "codeforces_url")
+    private String codeforcesUrl;
+
     @PrePersist
     @PreUpdate
     protected void onUpdate() {
