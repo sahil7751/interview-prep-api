@@ -34,8 +34,8 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await authApi.login(form);
-      const { token, name, email, role } = res.data.data;
-      login({ name, email, role }, token);
+      const { token, name, email, role, id } = res.data.data;  // ← add id
+      login({ name, email, role, id }, token); 
       toast.success(`Welcome back, ${name}!`);
       navigate('/dashboard');
     } catch (err) {

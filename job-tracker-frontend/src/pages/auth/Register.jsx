@@ -45,8 +45,8 @@ export default function Register() {
         email: form.email,
         password: form.password,
       });
-      const { token, name, email, role } = res.data.data;
-      login({ name, email, role }, token);
+      const { token, name, email, role, id } = res.data.data;
+      login({ name, email, role, id }, token);
       toast.success('Account created! Welcome 🎉');
       navigate('/dashboard');
     } catch (err) {

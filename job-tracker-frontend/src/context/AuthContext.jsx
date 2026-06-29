@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
     setToken(jwtToken);
     localStorage.setItem('token', jwtToken);
     localStorage.setItem('user', JSON.stringify(userData));
-  };
+};
 
   const logout = () => {
     setUser(null);
