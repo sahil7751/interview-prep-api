@@ -166,3 +166,307 @@ GitHub Actions workflow (`.github/workflows/ci-cd.yml`):
 2. **Build Frontend** -- Installs deps, builds React app
 3. **Docker Build & Push** -- Builds and pushes images to GHCR (main branch only)
 4. **Deploy** -- SSH into production server, pulls images, runs docker-compose
+
+
+# 🚀 AI-Powered Job Application Tracker
+
+An intelligent full-stack web application that helps students and job seekers efficiently manage their job applications, prepare for interviews, analyze resumes using AI, identify skill gaps, and stay organized with automated notifications.
+
+---
+
+## 📌 Features
+
+### 🔐 Authentication & Security
+- JWT-based Authentication
+- User Registration & Login
+- Password Encryption using BCrypt
+- Role-based Authorization
+- Spring Security Integration
+
+### 💼 Job Application Management
+- Create, Update, Delete Applications
+- Track Application Status
+- Search & Filter Applications
+- Pagination & Sorting
+- Application Notes
+- Company & Role Details
+
+### 📊 Dashboard Analytics
+- Total Applications
+- Success Rate
+- Rejection Rate
+- Status Breakdown
+- Monthly Application Trend
+- Interactive Dashboard Statistics
+
+### 🎯 Interview Management
+- Schedule Interviews
+- Track Interview Results
+- Store Interview Questions
+- Personal Notes
+- Link Interviews to Applications
+
+### 🤖 AI Assistant (Powered by Google Gemini)
+- Resume Analysis with ATS Score
+- Interview Question Generator
+- Skill Gap Analysis
+- Placement Preparation Guide
+
+### 🔔 Smart Notification System
+- Interview Reminders
+- Assessment Reminders
+- Follow-up Reminders
+- Read/Unread Notifications
+
+---
+
+# 🛠 Tech Stack
+
+## Backend
+- Java 21
+- Spring Boot 3.5
+- Spring Security
+- Spring Data JPA
+- Hibernate
+- JWT Authentication
+- MySQL
+- Maven
+- Lombok
+
+## Frontend
+- React
+- React Router
+- Axios
+- Tailwind CSS
+- React Hook Form
+- Chart.js
+
+## AI
+- Google Gemini API
+
+## Tools
+- IntelliJ IDEA / VS Code
+- Postman
+- Git & GitHub
+- MySQL Workbench
+
+---
+
+# 📂 Project Structure
+
+```
+job-tracker-backend
+│
+├── config
+├── controller
+├── dto
+│   ├── request
+│   └── response
+├── entity
+├── exception
+├── repository
+├── scheduler
+├── security
+├── service
+└── JobTrackerBackendApplication.java
+
+
+job-tracker-frontend
+│
+├── src
+│   ├── api
+│   ├── components
+│   ├── context
+│   ├── pages
+│   ├── routes
+│   └── utils
+```
+
+---
+
+# 📊 Database
+
+Main Tables
+
+- Users
+- Applications
+- Interviews
+- Notifications
+
+---
+
+# 🔑 API Modules
+
+### Authentication
+- Register
+- Login
+- JWT Validation
+
+### Applications
+- CRUD Operations
+- Search
+- Filter
+- Pagination
+
+### Dashboard
+- Statistics
+- Monthly Trends
+- Status Distribution
+
+### Interviews
+- Schedule
+- Update
+- Delete
+- Search
+
+### AI Assistant
+- Resume Analysis
+- Interview Questions
+- Skill Gap Analysis
+- Placement Preparation
+
+### Notifications
+- Fetch Notifications
+- Mark as Read
+- Unread Count
+- Delete Read Notifications
+
+---
+
+# ⚙️ Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/yourusername/job-tracker.git
+```
+
+## Backend
+
+```bash
+cd job-tracker-backend
+```
+
+Configure `application.yml`
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/job_tracker_db
+    username: YOUR_USERNAME
+    password: YOUR_PASSWORD
+
+jwt:
+  secret: YOUR_SECRET_KEY
+
+gemini:
+  api:
+    key: YOUR_GEMINI_API_KEY
+```
+
+Run
+
+```bash
+mvn spring-boot:run
+```
+
+Backend runs on
+
+```
+http://localhost:8081
+```
+
+---
+
+## Frontend
+
+```bash
+cd job-tracker-frontend
+```
+
+Install Dependencies
+
+```bash
+npm install
+```
+
+Start React
+
+```bash
+npm start
+```
+
+Frontend runs on
+
+```
+http://localhost:3000
+```
+
+---
+
+# 📸 Screenshots
+
+Add screenshots here after completing the frontend.
+
+Examples:
+
+- Login Page
+- Dashboard
+- Applications
+- Interview Tracker
+- Resume Analyzer
+- AI Assistant
+- Notifications
+
+---
+
+# 🚀 Future Improvements
+
+- Resume PDF Upload
+- Email Notifications
+- Calendar Integration
+- Company Reviews
+- AI Resume Builder
+- AI Cover Letter Generator
+- Mock Interview Chatbot
+- Dark Mode
+- Docker Deployment
+- CI/CD Pipeline
+- Cloud Deployment (AWS / Azure)
+
+---
+
+# 🎯 Learning Outcomes
+
+This project helped me gain hands-on experience with:
+
+- Spring Boot REST API Development
+- JWT Authentication & Authorization
+- Spring Security
+- Hibernate & JPA
+- MySQL Database Design
+- React Development
+- REST API Integration
+- AI Integration using Google Gemini
+- Scheduling Tasks
+- Clean Architecture
+- Full Stack Development
+
+---
+
+# 👨‍💻 Author
+
+**Sahil Jirapure**
+
+B.Tech Information Technology  
+MIT ADT University
+
+### Skills
+
+Java • Spring Boot • React • MySQL • JWT • REST APIs • Hibernate • Tailwind CSS • Git • GitHub • Google Gemini API
+
+---
+
+# ⭐ Support
+
+If you found this project helpful, consider giving it a ⭐ on GitHub!
