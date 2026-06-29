@@ -19,6 +19,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.jobtracker.repository.UserRepository;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -33,6 +34,7 @@ public class ProfileController {
     private final ProfileService profileService;
     private final SecurityUtils securityUtils;
     private final UserProfileRepository profileRepository;
+    private final UserRepository userRepository;
 
     @Value("${file.upload-dir:uploads/resumes}")
     private String uploadDir;
@@ -130,6 +132,45 @@ public class ProfileController {
         return ResponseEntity.ok(
                 ApiResponse.success("Profile reviewed",
                         profileService.reviewProfile()));
+        }
+
+        @GetMapping("/picture/user/{userId}")
+        public ResponseEntity<Resource> getPictureByUserId(
+                        @PathVariable Long userId) throws IOException {
+
+                // Find profile by user ID
+                User user = userRepository.findById(userId)
+                                .orElse(null);
+                if (user == null)
+                        return ResponseEntity.notFound().build();
+
+                UserProfile profile = profileRepository.findByUser(user)
+                                .orElse(null);
+
+                if (profile == null || profile.getProfilePicture() == null) {
+                        return ResponseEntity.notFound().build();
+                }
+
+                Path picPath = Paths.get(uploadDir, "pictures",
+                                String.valueOf(userId),
+                                profile.getProfilePicture());
+
+                Resource resource = new UrlResource(picPath.toUri());
+                if (!resource.exists() || !resource.isReadable()) {
+                        return ResponseEntity.notFound().build();
+                }
+
+                String filename = profile.getProfilePicture().toLowerCase();
+                String contentType = filename.endsWith(".png") ? "image/png"
+                                : filename.endsWith(".webp") ? "image/webp"
+                                                : "image/jpeg";
+
+                return ResponseEntity.ok()
+                                .contentType(MediaType.parseMediaType(contentType))
+                                .header(HttpHeaders.CACHE_CONTROL,
+                                                "no-cache, no-store, must-revalidate")
+                                .header(HttpHeaders.PRAGMA, "no-cache")
+                                .body(resource);
         }
 }
 

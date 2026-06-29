@@ -6,8 +6,10 @@ export const profileApi = {
     uploadPicture: (form) => API.post('/profile/picture', form, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
+
     getPictureUrl: (userId, bust) =>
-        `http://localhost:8081/api/v1/profile/picture?t=${bust || Date.now()}`,
+        `http://localhost:8081/api/v1/profile/picture/user/${userId}?t=${bust || Date.now()}`,
+
     changePassword: (data) => API.put('/profile/password', data),
     getCompletion: () => API.get('/profile/completion'),
     reviewProfile: () => API.post('/profile/review'),
