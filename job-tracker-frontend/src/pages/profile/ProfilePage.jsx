@@ -48,8 +48,8 @@ const JOB_TYPES = [
 ];
 
 // ── Avatar Component ──────────────────────────────────────────────
-function ProfileAvatar({ hasPicture, name, pictureBust, size = 'lg',
-                         onClick }) {
+function ProfileAvatar({ hasPicture, name, userId, pictureBust,
+                         size = 'lg', onClick }) {
   const [imgError, setImgError] = useState(false);
 
   const sizeClass = size === 'lg'
@@ -64,10 +64,10 @@ function ProfileAvatar({ hasPicture, name, pictureBust, size = 'lg',
 
   useEffect(() => { setImgError(false); }, [pictureBust]);
 
-  if (hasPicture && !imgError) {
+  if (userId && !imgError) {
     return (
       <img
-        src={`http://localhost:8081/api/v1/profile/picture?t=${pictureBust}`}
+        src={`http://localhost:8081/api/v1/profile/picture/user/${userId}?t=${pictureBust}`}
         alt={name}
         onError={() => setImgError(true)}
         onClick={onClick}
@@ -310,6 +310,7 @@ export default function ProfilePage() {
               <ProfileAvatar
                 hasPicture={!!profile?.profilePictureUrl}
                 name={user?.name}
+                userId={user?.id}  
                 pictureBust={pictureBust}
                 size="xl"
                 onClick={() => fileRef.current.click()}

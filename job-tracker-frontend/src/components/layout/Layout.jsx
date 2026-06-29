@@ -16,9 +16,8 @@ const navItems = [
   { to: '/profile',            icon: '👤', label: 'Profile'           },
 ];
 
-function Avatar({ name, pictureBust, size = 'sm' }) {
+function Avatar({ name, userId, pictureBust, size = 'sm' }) {
   const [imgError, setImgError] = useState(false);
-  const token = localStorage.getItem('token');
 
   const sizeClass = size === 'sm'
     ? 'w-8 h-8 text-xs'
@@ -30,10 +29,12 @@ function Avatar({ name, pictureBust, size = 'sm' }) {
     ? name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'U';
 
-  if (!imgError && token) {
+  useEffect(() => { setImgError(false); }, [pictureBust]);
+
+  if (userId && !imgError) {
     return (
       <img
-        src={`http://localhost:8081/api/v1/profile/picture?t=${pictureBust}`}
+        src={`http://localhost:8081/api/v1/profile/picture/user/${userId}?t=${pictureBust}`}
         alt={name}
         onError={() => setImgError(true)}
         className={`${sizeClass} rounded-full object-cover
@@ -131,6 +132,7 @@ export default function Layout({ children }) {
             <div className="flex items-center gap-3 p-2 rounded-xl
                             hover:bg-gray-50 transition-colors">
               <Avatar name={user?.name}
+                      userId={user?.id}
                       pictureBust={pictureBust}
                       size="md"/>
               <div className="flex-1 min-w-0">
@@ -146,8 +148,9 @@ export default function Layout({ children }) {
           ) : (
             <div className="flex justify-center">
               <Avatar name={user?.name}
+                      userId={user?.id}
                       pictureBust={pictureBust}
-                      size="sm"/>
+                      size="md"/>
             </div>
           )}
           <button
@@ -190,6 +193,7 @@ export default function Layout({ children }) {
                          rounded-xl hover:bg-gray-100
                          transition-colors">
               <Avatar name={user?.name}
+                      userId={user?.id}
                       pictureBust={pictureBust}
                       size="sm"/>
               <div className="hidden sm:block text-left">
