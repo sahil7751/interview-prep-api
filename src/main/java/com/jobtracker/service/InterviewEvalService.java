@@ -46,67 +46,162 @@ public class InterviewEvalService {
     // ── START SESSION ────────────────────────────────────────────
     @Transactional
     public PracticeSessionResponse startSession(
-            StartSessionRequest request) {
+                    StartSessionRequest request) {
 
-        User user = securityUtils.getCurrentUser();
+            User user = securityUtils.getCurrentUser();
 
-        // Create session
-        InterviewPracticeSession session = InterviewPracticeSession.builder()
-                .user(user)
-                .jobRole(request.getJobRole())
-                .jobDescription(request.getJobDescription())
-                .experienceLevel(request.getExperienceLevel())
-                .totalQuestions(request.getQuestionCount())
-                .build();
+            // Award XP for starting interview
+            gamificationService.recordActivity(user,
+                            XpAction.GENERATE_QUESTIONS);
 
-        session = sessionRepository.save(session);
+            // Build enhanced session
+            InterviewPracticeSession session = InterviewPracticeSession.builder()
+                            .user(user)
+                            .jobRole(request.getJobRole())
+                            .jobDescription(request.getJobDescription())
+                            .experienceLevel(request.getExperienceLevel())
+                            .totalQuestions(request.getQuestionCount())
+                            .build();
 
-        // Generate questions via AI
-        List<GeneratedQuestion> questions = generateQuestions(request);
+            session = sessionRepository.save(session);
 
-        // Save each question as a QA record
-        List<PracticeQuestionResponse> questionResponses = new ArrayList<>();
+            // Generate questions with enhanced prompt
+            List<GeneratedQuestion> questions = generateEnhancedQuestions(request);
 
-        for (GeneratedQuestion q : questions) {
-            InterviewQaRecord record = InterviewQaRecord.builder()
-                    .session(session)
-                    .user(user)
-                    .question(q.question)
-                    .difficulty(q.difficulty)
-                    .category(q.category)
-                    .build();
+            List<PracticeQuestionResponse> questionResponses = new ArrayList<>();
 
-            InterviewQaRecord saved = qaRepository.save(record);
+            for (GeneratedQuestion q : questions) {
+                    InterviewQaRecord record = InterviewQaRecord.builder()
+                                    .session(session)
+                                    .user(user)
+                                    .question(q.question)
+                                    .difficulty(q.difficulty)
+                                    .category(q.category)
+                                    .build();
 
-            questionResponses.add(PracticeQuestionResponse.builder()
-                    .id(saved.getId())
-                    .question(saved.getQuestion())
-                    .difficulty(saved.getDifficulty())
-                    .category(saved.getCategory())
-                    .evaluated(false)
-                    .build());
-        }
+                    InterviewQaRecord saved = qaRepository.save(record);
 
-        // Update total questions count
-        session.setTotalQuestions(questionResponses.size());
-        sessionRepository.save(session);
+                    questionResponses.add(
+                                    PracticeQuestionResponse.builder()
+                                                    .id(saved.getId())
+                                                    .question(saved.getQuestion())
+                                                    .difficulty(saved.getDifficulty())
+                                                    .category(saved.getCategory())
+                                                    .evaluated(false)
+                                                    .build());
+            }
 
-        log.info("Practice session started: {} for {}",
-                session.getId(), user.getEmail());
+            session.setTotalQuestions(questionResponses.size());
+            sessionRepository.save(session);
 
-        return PracticeSessionResponse.builder()
-                .id(session.getId())
-                .jobRole(session.getJobRole())
-                .jobDescription(session.getJobDescription())
-                .experienceLevel(session.getExperienceLevel())
-                .totalQuestions(session.getTotalQuestions())
-                .answeredQuestions(0)
-                .averageScore(0.0)
-                .createdAt(session.getCreatedAt())
-                .questions(questionResponses)
-                .build();
+            return PracticeSessionResponse.builder()
+                            .id(session.getId())
+                            .jobRole(session.getJobRole())
+                            .jobDescription(session.getJobDescription())
+                            .experienceLevel(session.getExperienceLevel())
+                            .interviewType(request.getInterviewType())
+                            .difficulty(request.getDifficulty())
+                            .targetCompany(request.getTargetCompany())
+                            .totalQuestions(session.getTotalQuestions())
+                            .answeredQuestions(0)
+                            .averageScore(0.0)
+                            .timedMode(request.isTimedMode())
+                            .timeLimitMinutes(request.getTimeLimitMinutes())
+                            .createdAt(session.getCreatedAt())
+                            .questions(questionResponses)
+                            .build();
     }
 
+    // Enhanced question generation with company + type context
+    private List<GeneratedQuestion> generateEnhancedQuestions(
+                    StartSessionRequest request) {
+
+            String skillsStr = request.getSelectedSkills() != null
+                            ? String.join(", ", request.getSelectedSkills())
+                            : "General";
+
+            String prompt = """
+                            You are an expert interviewer at %s.
+                            Generate exactly %d interview questions.
+
+                            Role: %s
+                            Interview Type: %s
+                            Difficulty: %s
+                            Skills Focus: %s
+                            Experience: %s
+                            Job Description: %s
+
+                            Return ONLY a valid JSON array, no markdown:
+                            [
+                              {
+                                "question": "<specific question text>",
+                                "difficulty": "<Easy|Medium|Hard>",
+                                "category": "<Technical|Behavioural|HR|System Design>"
+                              }
+                            ]
+
+                            Distribution based on type:
+                            - Technical: 70%% Technical, 20%% Behavioural, 10%% HR
+                            - HR: 20%% Technical, 30%% Behavioural, 50%% HR
+                            - Behavioral: 20%% Technical, 60%% Behavioural, 20%% HR
+                            - System Design: 60%% System Design, 30%% Technical, 10%% HR
+                            - Mixed: 50%% Technical, 25%% Behavioural, 15%% HR, 10%% System Design
+
+                            Make questions specific to %s company culture and role.
+                            For difficulty %s, adjust question complexity accordingly.
+                            """.formatted(
+                            request.getTargetCompany() != null
+                                            ? request.getTargetCompany()
+                                            : "a top tech company",
+                            request.getQuestionCount(),
+                            request.getJobRole(),
+                            request.getInterviewType(),
+                            request.getDifficulty(),
+                            skillsStr,
+                            request.getExperienceLevel(),
+                            request.getJobDescription().length() > 500
+                                            ? request.getJobDescription().substring(0, 500)
+                                            : request.getJobDescription(),
+                            request.getTargetCompany() != null
+                                            ? request.getTargetCompany()
+                                            : "the target",
+                            request.getDifficulty());
+
+            try {
+                    String raw = callGroq(prompt);
+                    String cleaned = cleanJson(raw);
+                    int s = cleaned.indexOf('[');
+                    int e = cleaned.lastIndexOf(']');
+                    if (s != -1 && e != -1)
+                            cleaned = cleaned.substring(s, e + 1);
+                    GeneratedQuestion[] arr = objectMapper.readValue(cleaned,
+                                    GeneratedQuestion[].class);
+                    return Arrays.asList(arr);
+            } catch (Exception ex) {
+                    log.error("Question generation failed: {}", ex.getMessage());
+                    return buildFallbackQuestions(request);
+            }
+    }
+
+    private List<GeneratedQuestion> buildFallbackQuestions(
+                    StartSessionRequest req) {
+            List<GeneratedQuestion> list = new ArrayList<>();
+            String[][] defaults = {
+                            { "Tell me about yourself and your background.", "Easy", "HR" },
+                            { "Explain your most challenging technical project.", "Medium", "Technical" },
+                            { "How do you approach problem solving under pressure?", "Medium", "Behavioural" },
+                            { "What is your experience with " + req.getJobRole() + "?", "Medium", "Technical" },
+                            { "Where do you see yourself in 5 years?", "Easy", "HR" },
+            };
+            int count = Math.min(req.getQuestionCount(), defaults.length);
+            for (int i = 0; i < count; i++) {
+                    list.add(new GeneratedQuestion(
+                                    defaults[i][0], defaults[i][1], defaults[i][2]));
+            }
+            return list;
+    }
+
+    
     // ── EVALUATE ANSWER ──────────────────────────────────────────
     @Transactional
     public EvaluationResponse evaluateAnswer(
