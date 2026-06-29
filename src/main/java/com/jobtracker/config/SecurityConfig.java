@@ -41,18 +41,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/health").permitAll()
-                        // ── Add these Swagger URLs ──
+                        .requestMatchers("/api/v1/profile/picture/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs")
                         .permitAll()
-                        // ───────────────────────────
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter,
+                        .authenticationProvider(authenticationProvider())
+                        .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
