@@ -41,7 +41,7 @@ public class InterviewEvalService {
     private String groqApiUrl;
 
     @Value("${groq.api.model:llama-3.3-70b-versatile}")
-    private String groqModel;
+    private String groqModel; 
 
     // ── START SESSION ────────────────────────────────────────────
     @Transactional

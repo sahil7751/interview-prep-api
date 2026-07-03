@@ -11,9 +11,9 @@ const navItems = [
   { to: '/interview-practice', icon: '🧠', label: 'Interview Practice' },
   { to: '/resume',             icon: '🎨', label: 'Resume Studio'      },
   { to: '/roadmap',            icon: '🗺️',  label: 'Learning Roadmap'  },
-  { to: '/career-coach',       icon: '💬', label: 'AI Career Coach'   },
-  { to: '/ai',                 icon: '🤖', label: 'AI Assistant'      },
-  { to: '/profile',            icon: '👤', label: 'Profile'           },
+  { to: '/career-coach',       icon: '💬', label: 'AI Career Coach'    },
+  { to: '/ai',                 icon: '🤖', label: 'AI Hub'             },
+  { to: '/profile',            icon: '👤', label: 'Profile'            },
 ];
 
 function Avatar({ name, userId, pictureBust, size = 'sm' }) {
