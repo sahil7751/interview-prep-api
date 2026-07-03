@@ -10,7 +10,7 @@ import Dashboard from './pages/dashboard/Dashboard';
 import Applications from './pages/applications/Applications';
 import Interviews from './pages/interviews/Interviews';
 import ResumePage from './pages/resume/ResumePage';
-import AIAssistant from './pages/ai/AIAssistant';
+import AIHub from './pages/ai/AIHub';
 import ProfilePage from './pages/profile/ProfilePage';
 import InterviewPractice from './pages/interview-practice/InterviewPractice';
 import RoadmapPage from './pages/roadmap/RoadmapPage';
@@ -79,16 +79,11 @@ export default function App() {
               </PrivateRoute>
             }
           />
-          <Route
-            path="/ai"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <AIAssistant />
-                </Layout>
-              </PrivateRoute>
-            }
-          />
+          <Route path="/ai" element={
+            <PrivateRoute>
+              <Layout><AIHub /></Layout>
+            </PrivateRoute>
+          } />
 
           <Route path="/profile" element={
             <PrivateRoute>
