@@ -1,67 +1,91 @@
 <div align="center">
 
 # 🚀 CareerPilot AI
-### AI-Powered Career & Job Application Tracker
 
-An intelligent career platform that helps students and job seekers manage job applications, prepare for interviews, analyze resumes, identify skill gaps, and receive AI-powered career guidance.
+### AI-Powered Career Management & Placement Preparation Platform
 
-Built with **Spring Boot**, **React**, **MySQL**, **JWT Authentication**, and **Google Gemini AI**.
+CareerPilot AI is an intelligent full-stack platform that helps students and job seekers manage their placement journey from job applications to interview preparation using Artificial Intelligence.
+
+Built with **Spring Boot**, **React**, **MySQL**, **JWT Authentication**, and **Groq Llama AI**.
 
 ![Java](https://img.shields.io/badge/Java-21-red)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green)
-![React](https://img.shields.io/badge/React-18-blue)
-![MySQL](https://img.shields.io/badge/MySQL-8-orange)
+![React](https://img.shields.io/badge/React-18-61DAFB)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1)
 ![JWT](https://img.shields.io/badge/JWT-Security-purple)
-![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Groq](https://img.shields.io/badge/AI-Groq_Llama-orange)
+![License](https://img.shields.io/badge/License-MIT-success)
 
 </div>
 
 ---
 
-# 📌 Overview
+# 📖 Overview
 
-CareerPilot AI is a full-stack AI-powered career platform designed to simplify the placement journey for students and professionals.
+CareerPilot AI is an end-to-end AI-powered career management platform designed to simplify the placement journey for students and professionals.
 
-Instead of managing applications manually, users can:
+Instead of using multiple tools for tracking applications, preparing for interviews, managing resumes, and planning careers, CareerPilot AI brings everything together into one intelligent platform.
 
-- Track every job application
-- Manage interview schedules
-- Practice AI-generated interviews
-- Analyze resumes with AI
-- Discover missing skills
-- Generate placement preparation roadmaps
-- Build a complete career profile
-- Receive smart notifications
+Users can:
+
+- 📌 Track job applications
+- 🎤 Manage interview schedules
+- 🤖 Practice AI-powered mock interviews
+- 📄 Analyze resumes with AI
+- 🎯 Identify skill gaps
+- 🗺️ Generate personalized learning roadmaps
+- 👤 Build a professional career profile
+- 💬 Chat with an AI Career Coach
+- 🏆 Earn XP through gamified learning
+- 🔔 Receive smart reminders and notifications
 
 ---
 
-# ✨ Features
+# 🎥 Project Demonstration
 
-## 📊 Dashboard
+## 📺 Demo Video
+
+> **Google Drive Video Link**
+>
+> **🔗 Add your Google Drive video link here**
+>
+> https://YOUR-GOOGLE-DRIVE-LINK
+
+---
+
+# ✨ Core Features
+
+## 📊 Smart Dashboard
+
+A centralized dashboard providing real-time career insights.
 
 - Application analytics
-- Success rate
-- Rejection rate
 - Monthly trends
-- Status breakdown
-- Quick statistics
+- Success & rejection rates
+- Profile completion
+- Interview performance
+- XP & Level progress
+- Recent activity timeline
 
 ---
 
-## 📄 Job Application Tracker
+## 💼 Job Application Tracker
 
-- Add applications
-- Edit applications
-- Delete applications
-- Track status
-- Company-wise search
-- Application history
+Manage the complete job application lifecycle.
 
-Supported statuses:
+Features:
+
+- Add/Edit/Delete applications
+- Search & Filter
+- Status tracking
+- Company-wise organization
+- Package & location tracking
+- Interview linkage
+
+Supported Statuses
 
 - Applied
-- Assessment Scheduled
+- Assessment
 - HR Round
 - Technical Round
 - Final Round
@@ -73,129 +97,180 @@ Supported statuses:
 
 ## 🎤 Interview Tracker
 
+Organize every interview in one place.
+
 - Schedule interviews
-- Track interview types
+- Track interview stages
+- Save interview experiences
 - Store interview questions
-- Save personal notes
-- Record interview result
-- Search by company
+- Add notes
+- Record results
+- Company-wise search
 
 ---
 
 ## 🤖 AI Career Assistant
 
-Powered by **Google Gemini AI**
+Powered by **Groq Llama AI**
 
-Includes:
-
-### Resume Analysis
+### 📄 Resume Analysis
 
 - ATS Score
 - Resume strengths
-- Weaknesses
+- Weakness detection
 - Missing keywords
 - Improvement suggestions
-- Overall feedback
+- Overall resume feedback
 
----
-
-### Interview Question Generator
+### 🎯 Interview Question Generator
 
 Generate customized interview questions based on:
 
-- Job Role
-- Experience Level
-- Job Description
+- Job role
+- Experience level
+- Job description
 
 Includes:
 
 - Technical Questions
-- Behavioral Questions
 - HR Questions
+- Behavioral Questions
 
----
+### 📈 Skill Gap Analysis
 
-### Skill Gap Analysis
+Analyze current skills against target roles.
 
-Compares current skills with target role and provides:
+Provides:
 
-- Present skills
-- Missing skills
-- Match percentage
-- Learning roadmap
-- Recommended resources
+- Skill match percentage
+- Missing technologies
+- Recommended learning path
+- Personalized suggestions
 
----
+### 🚀 Placement Preparation
 
-### Placement Preparation
+Generate AI-powered preparation plans including:
 
-Generates:
-
-- Study roadmap
+- Weekly roadmap
 - DSA topics
-- Projects
-- Resources
-- Weekly preparation plan
+- Recommended projects
+- Learning resources
+- Study strategy
 
 ---
 
 ## 🧠 AI Interview Practice
 
-Interactive mock interview system featuring:
+Practice realistic mock interviews with AI.
 
-- Practice sessions
-- AI-generated questions
-- Answer evaluation
-- Performance score
-- Feedback
+Features:
+
+- AI-generated interview sessions
+- Dynamic questions
+- AI answer evaluation
+- Performance scoring
+- Personalized feedback
 - Practice history
+- Progress tracking
+
+---
+
+## 💬 AI Career Coach
+
+A personalized AI mentor trained to help users throughout their placement journey.
+
+Capabilities:
+
+- Placement guidance
+- DSA planning
+- Resume optimization
+- Company-specific preparation
+- Career planning
+- Personalized coaching
+- Daily career insights
+- Weekly progress reviews
+
+---
+
+## 📄 Resume Studio
+
+Professional resume management.
+
+- Upload multiple resumes
+- Resume versioning
+- Active resume selection
+- ATS scoring
+- Resume metadata
+- Target role management
 
 ---
 
 ## 👤 Career Profile
 
-Complete professional profile including:
+Create a complete professional profile.
 
-- Personal details
+Includes:
+
+- Personal information
 - Education
 - Skills
-- Social links
 - Career goals
-- Resume
-- XP & Level system
+- Social profiles
+- Resume information
+- XP & Level
 - Profile completion
+- AI profile review
 
 ---
 
-## 🔔 Smart Notifications
+## 🎮 Gamification
 
-Automatic reminders for:
+Stay motivated throughout your placement journey.
+
+Features:
+
+- XP System
+- Career Levels
+- Daily streaks
+- Achievement tracking
+- Activity rewards
+- Progress monitoring
+
+---
+
+## 🔔 Smart Notification System
+
+Never miss important events.
+
+Notifications for:
 
 - Upcoming interviews
-- Assessments
-- Follow-ups
+- Application reminders
+- Placement activities
+- AI recommendations
 
-Users can:
+Actions:
 
 - Mark as read
 - Mark all as read
 - Delete notifications
-- Track unread count
+- Unread count
 
 ---
 
-# 🔐 Authentication
+# 🔐 Security
 
 - JWT Authentication
-- Login
-- Register
-- Secure APIs
-- Password Encryption
-- Role-based access
+- Spring Security
+- Password Encryption (BCrypt)
+- Role-based Authorization
+- Secure REST APIs
+- Protected Routes
+- Authentication Filters
 
 ---
 
-# 🛠 Tech Stack
+# 🛠️ Technology Stack
 
 ## Backend
 
@@ -204,7 +279,7 @@ Users can:
 - Spring Security
 - Spring Data JPA
 - Hibernate
-- JWT
+- JWT Authentication
 - MySQL
 - Maven
 - Lombok
@@ -217,101 +292,185 @@ Users can:
 - React Router
 - Axios
 - Tailwind CSS
-- HTML
-- CSS
-- JavaScript
+- HTML5
+- CSS3
+- JavaScript (ES6)
 
 ---
 
-## AI
+## Artificial Intelligence
 
-- Google Gemini API
+- Groq API
+- Llama 3.3 70B Versatile
 
 ---
 
-## Tools
+## Development Tools
 
 - Git
 - GitHub
 - Postman
-- VS Code
 - IntelliJ IDEA
+- VS Code
+- Maven
 
 ---
 
-# 📂 Project Structure
+# 📁 Project Structure
 
-```
+```text
 CareerPilot-AI
 │
 ├── job-tracker-backend
+│   ├── config
 │   ├── controller
-│   ├── service
-│   ├── repository
+│   ├── dto
 │   ├── entity
-│   ├── security
+│   ├── repository
 │   ├── scheduler
-│   └── config
+│   ├── security
+│   ├── service
+│   └── util
 │
 ├── job-tracker-frontend
-│   ├── components
-│   ├── pages
 │   ├── api
+│   ├── components
 │   ├── context
-│   └── routes
+│   ├── pages
+│   ├── routes
+│   └── utils
 │
 └── README.md
 ```
 
+---
+
+# ⚙️ Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/CareerPilot-AI.git
+```
+
+Backend
+
+```bash
+cd job-tracker-backend
+
+mvn clean install
+
+mvn spring-boot:run
+```
+
+Frontend
+
+```bash
+cd job-tracker-frontend
+
+npm install
+
+npm start
+```
+
+Backend runs on:
+
+```
+http://localhost:8081
+```
+
+Frontend runs on:
+
+```
+http://localhost:3000
+```
+
+---
+
+# 📸 Screenshots
+
+Add screenshots of:
+
+- Dashboard
+- AI Career Coach
+- AI Career Assistant
+- Interview Practice
+- Resume Studio
+- Profile
+- Application Tracker
+
+---
 
 # 🚀 Future Enhancements
 
-- Resume PDF parsing
+- Resume PDF Parsing
 - AI Resume Builder
-- Company-wise analytics
-- Email notifications
-- Calendar integration
-- AI Career Coach Chatbot
-- Dark mode
-- Mobile responsive UI
-- Docker deployment
-- Cloud deployment (AWS)
+- Email Notifications
+- Calendar Integration
+- Company-wise Analytics
+- AI Voice Interview
+- Mobile Application
+- Docker Support
+- AWS Deployment
+- Dark Mode
+- Real-time Notifications
 
 ---
 
-# 📚 What I Learned
+# 📚 Learning Outcomes
 
-Through this project I gained practical experience with:
+This project helped me gain hands-on experience with:
 
-- Spring Boot Architecture
-- REST API Development
-- JWT Authentication
-- React Frontend Development
-- MySQL Database Design
-- AI API Integration
-- Scheduled Jobs
 - Full Stack Development
+- Spring Boot Architecture
+- REST API Design
+- JWT Authentication
+- Spring Security
+- React Development
 - State Management
+- Database Design
+- AI Integration
+- Prompt Engineering
 - Secure Authentication
+- Software Architecture
+- Clean Code Practices
+- Git & Version Control
 
 ---
 
-# 👨‍💻 Author
+# 👨‍💻 Developer
 
 **Sahil Jirapure**
 
-B.Tech Information Technology  
+B.Tech Information Technology
+
 MIT ADT University
 
-GitHub:
+📧 Email
+
+sahiljirapure8@gmail.com
+
+🔗 GitHub
+
 https://github.com/sahil7751
 
-LinkedIn:
-www.linkedin.com/in/sahil-jirapure
+🔗 LinkedIn
+
+https://www.linkedin.com/in/sahil-jirapure
 
 ---
 
-# ⭐ Support
+# ⭐ Show Your Support
 
-If you found this project useful, consider giving it a ⭐ on GitHub.
+If you found this project useful, please consider giving it a ⭐ on GitHub.
+
+It motivates me to continue building and improving open-source projects.
+
+---
+
+<div align="center">
+
+**CareerPilot AI — Your Intelligent Placement Companion 🚀**
+
+</div>
 
