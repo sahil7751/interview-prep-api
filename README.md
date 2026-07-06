@@ -47,8 +47,6 @@ Users can:
 
 > **Google Drive Video Link**
 >
-> **🔗 Add your Google Drive video link here**
->
 > https://YOUR-GOOGLE-DRIVE-LINK
 
 ---
