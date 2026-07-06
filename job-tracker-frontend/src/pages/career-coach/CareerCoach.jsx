@@ -687,7 +687,7 @@ export default function CareerCoach() {
                          focus:ring-2 focus:ring-indigo-500
                          focus:border-indigo-500 text-gray-900
                          placeholder-gray-400"
-            />
+            /> 
             <button
               onClick={() => sendMessage()}
               disabled={!input.trim() || typing}
