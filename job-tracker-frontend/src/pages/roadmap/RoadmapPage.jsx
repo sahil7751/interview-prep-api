@@ -497,6 +497,7 @@ export default function RoadmapPage() {
   const [roadmaps, setRoadmaps] = useState([]);
   const [active, setActive]     = useState(null);
   const [loading, setLoading]   = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => { fetchRoadmaps(); }, []);
 
