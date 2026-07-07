@@ -491,5 +491,6 @@ function RoadmapDetail({ roadmap, onToggle, onBack }) {
   );
 }
 
+// ── Main Component ────────────────────────────────────────────────
 
 
