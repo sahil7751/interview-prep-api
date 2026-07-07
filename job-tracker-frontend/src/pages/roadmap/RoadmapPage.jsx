@@ -492,5 +492,178 @@ function RoadmapDetail({ roadmap, onToggle, onBack }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────
+export default function RoadmapPage() {
 
+  useEffect(() => { fetchRoadmaps(); }, []);
+
+  const fetchRoadmaps = async () => {
+    try {
+      const res = await roadmapApi.getAll();
+      setRoadmaps(res.data.data || []);
+    } catch {
+      toast.error('Failed to load roadmaps');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerate = async (form) => {
+    setGenerating(true);
+    try {
+      const res = await roadmapApi.generate(form);
+      const roadmap = res.data.data;
+      setRoadmaps(prev => [roadmap, ...prev]);
+      setActive(roadmap);
+      setView('detail');
+      toast.success('Roadmap generated! 🗺️');
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || 'Generation failed');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleViewRoadmap = async (id) => {
+    try {
+      const res = await roadmapApi.getOne(id);
+      setActive(res.data.data);
+      setView('detail');
+    } catch {
+      toast.error('Failed to load roadmap');
+    }
+  };
+
+  const handleToggle = async (roadmapId, milestoneId) => {
+    try {
+      const res = await roadmapApi.toggleMilestone(
+              roadmapId, milestoneId);
+      const updated = res.data.data;
+      setActive(updated);
+      setRoadmaps(prev => prev.map(r =>
+        r.id === updated.id
+          ? { ...r,
+              completedMilestones: updated.completedMilestones,
+              completionPercent:   updated.completionPercent }
+          : r
+      ));
+    } catch {
+      toast.error('Failed to update milestone');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this roadmap?')) return;
+    try {
+      await roadmapApi.delete(id);
+      setRoadmaps(prev => prev.filter(r => r.id !== id));
+      if (active?.id === id) {
+        setActive(null);
+        setView('list');
+      }
+      toast.success('Roadmap deleted');
+    } catch {
+      toast.error('Failed to delete');
+    }
+  };
+
+  return (
+    <div className="space-y-5 max-w-5xl">
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">
+            🗺️ Skill Roadmap
+          </h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            AI-generated learning path with progress tracking
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() =>
+              setView(view === 'generate' ? 'list' : 'generate')
+            }
+            className={`px-4 py-2 rounded-lg text-sm font-medium
+              transition-colors
+              ${view === 'generate'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
+            + New Roadmap
+          </button>
+          <button
+            onClick={() => setView('list')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium
+              border transition-colors
+              ${view === 'list' && !active
+                  ? 'bg-white border-gray-300 text-gray-900'
+                  : 'bg-white border-gray-300 text-gray-600'
+                    + ' hover:bg-gray-50'}`}>
+            My Roadmaps
+          </button>
+        </div>
+      </div>
+
+      {/* Generate View */}
+      {view === 'generate' && (
+        <GenerateForm
+          onGenerate={handleGenerate}
+          generating={generating}
+        />
+      )}
+
+      {/* List View */}
+      {view === 'list' && (
+        <>
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <div className="w-8 h-8 border-4 border-indigo-500
+                              border-t-transparent rounded-full
+                              animate-spin"/>
+            </div>
+          ) : roadmaps.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200
+                            text-center py-16">
+              <p className="text-5xl mb-3">🗺️</p>
+              <p className="text-base font-semibold text-gray-800 mb-1">
+                No roadmaps yet
+              </p>
+              <p className="text-sm text-gray-500 mb-5">
+                Generate your first AI-powered learning roadmap
+              </p>
+              <button
+                onClick={() => setView('generate')}
+                className="px-5 py-2.5 bg-indigo-600 text-white
+                           text-sm font-medium rounded-lg
+                           hover:bg-indigo-700 transition-colors">
+                + Create Roadmap
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {roadmaps.map(r => (
+                <RoadmapCard
+                  key={r.id}
+                  roadmap={r}
+                  onView={handleViewRoadmap}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Detail View */}
+      {view === 'detail' && active && (
+        <RoadmapDetail
+          roadmap={active}
+          onToggle={handleToggle}
+          onBack={() => setView('list')}
+        />
+      )}
+    </div>
+  );
+}
 
