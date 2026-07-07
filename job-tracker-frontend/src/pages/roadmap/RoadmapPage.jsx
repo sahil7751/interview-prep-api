@@ -493,6 +493,10 @@ function RoadmapDetail({ roadmap, onToggle, onBack }) {
 
 // ── Main Component ────────────────────────────────────────────────
 export default function RoadmapPage() {
+  const [view, setView]         = useState('list'); // list | generate | detail
+  const [roadmaps, setRoadmaps] = useState([]);
+  const [active, setActive]     = useState(null);
+  const [loading, setLoading]   = useState(true);
 
   useEffect(() => { fetchRoadmaps(); }, []);
 
