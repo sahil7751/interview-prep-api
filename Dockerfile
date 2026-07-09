@@ -13,7 +13,7 @@ RUN mvn clean package -DskipTests -B
 
 # ── Stage 2: Run ─────────────────────────────────────────────────
 FROM eclipse-temurin:21-jre-alpine
-
+ 
 WORKDIR /app
 
 # Create uploads directory

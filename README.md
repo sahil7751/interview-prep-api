@@ -40,7 +40,7 @@ Users can:
 - 🔔 Receive smart reminders and notifications
 
 ---
-
+ 
 # 🎥 Project Demonstration
 
 ## 📺 Demo Video
