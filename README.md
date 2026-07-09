@@ -47,7 +47,7 @@ Users can:
 
 > **Google Drive Video Link**
 >
-> https://YOUR-GOOGLE-DRIVE-LINK
+> https://drive.google.com/file/d/1ASxY4ND6PmFl2d5H_WeeS0UA4Z28SzeB/view?usp=drive_link
 
 ---
 
