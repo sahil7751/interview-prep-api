@@ -265,6 +265,8 @@ Actions:
 - Secure REST APIs
 - Protected Routes
 - Authentication Filters
+- CORS restricted to an explicit, environment-configurable origin allow-list (no wildcard origins)
+- All secrets (DB credentials, JWT secret, AI API key) provided via environment variables — none are committed to the repository
 
 ---
 
@@ -351,6 +353,18 @@ CareerPilot-AI
 git clone https://github.com/YOUR_USERNAME/CareerPilot-AI.git
 ```
 
+## Configure Environment Variables
+
+Copy the example env file and fill in your own local values:
+
+```bash
+cp .env.example .env
+```
+
+`.env` is git-ignored and must never be committed. See the
+[Environment Variables](#-environment-variables) section below for what
+each value means.
+
 Backend
 
 ```bash
@@ -360,6 +374,10 @@ mvn clean install
 
 mvn spring-boot:run
 ```
+
+The backend reads configuration from environment variables (see below) —
+export them in your shell, or use `docker-compose up`, which loads `.env`
+automatically.
 
 Frontend
 
@@ -382,6 +400,31 @@ Frontend runs on:
 ```
 http://localhost:3000
 ```
+
+---
+
+# 🔑 Environment Variables
+
+The backend requires the following environment variables. None of them
+have real default values committed to the repo — you must provide your
+own (see `.env.example` for a ready-to-copy template).
+
+| Variable | Required | Description |
+|---|---|---|
+| `GROQ_API_KEY` | ✅ Yes | API key for the Groq AI API (used for all AI features: resume analysis, interview practice, career coach, etc.). Get one at [console.groq.com](https://console.groq.com). |
+| `GROQ_API_URL` | No (has default) | Groq chat-completions endpoint. Defaults to `https://api.groq.com/openai/v1/chat/completions`. |
+| `GROQ_MODEL` | No (has default) | Groq model name. Defaults to `llama-3.3-70b-versatile`. |
+| `MYSQL_HOST` / `MYSQL_PORT` / `MYSQL_DB` | No (has defaults) | Database connection target. Defaults to `localhost:3306/job_tracker_db`. |
+| `MYSQL_USER` | ✅ Yes | Database username. No default — must be set. |
+| `MYSQL_PASSWORD` | ✅ Yes | Database password. No default — must be set. |
+| `MYSQL_ROOT_PASSWORD` | ✅ Yes (Docker only) | Root password for the MySQL container in `docker-compose.yml`. Not used by the backend directly. |
+| `JWT_SECRET` | ✅ Yes | Secret key used to sign JWTs. Must be a long, random, unpredictable string. No default — the app will not start without it. |
+| `JWT_EXPIRATION` | No (has default) | Token lifetime in milliseconds. Defaults to `86400000` (24h). |
+| `CORS_ALLOWED_ORIGINS` | No (has default) | Comma-separated list of frontend origins allowed to call the API with credentials. Defaults to `http://localhost:3000` for local dev — **must** be set to your real frontend URL(s) in production. |
+| `SERVER_PORT` | No (has default) | Backend port. Defaults to `8081`. |
+
+⚠️ **Never commit `.env` or real secret values.** Only `.env.example`
+(with placeholder values) belongs in the repository.
 
 ---
 

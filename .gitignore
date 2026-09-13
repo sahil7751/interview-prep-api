@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment / secrets ###
+.env
+.env.*
+!.env.example
+application-local.yml
+application-local.yaml
+
+### Uploaded user files (local runtime storage, contains PII) ###
+uploads/

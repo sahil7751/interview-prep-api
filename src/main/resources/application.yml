@@ -4,8 +4,8 @@ server:
 spring:
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB:job_tracker_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: ${MYSQL_USER:jobtracker}
-    password: ${MYSQL_PASSWORD:jobtracker123}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -35,19 +35,22 @@ spring:
       max-request-size: 10MB
 
 jwt:
-  secret: ${JWT_SECRET:JobTrackerSuperSecretKeyThatIsAtLeast256BitsLong!}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
 groq:
   api:
-    key: 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
-    url: https://api.groq.com/openai/v1/chat/completions
-    model: llama-3.3-70b-versatile
-    connect-timeout-ms: 10000
-    read-timeout-ms: 30000
+    key: ${GROQ_API_KEY}
+    url: ${GROQ_API_URL:https://api.groq.com/openai/v1/chat/completions}
+    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+    connect-timeout-ms: ${GROQ_CONNECT_TIMEOUT_MS:10000}
+    read-timeout-ms: ${GROQ_READ_TIMEOUT_MS:30000}
 
 file:
   upload-dir: ${FILE_UPLOAD_DIR:uploads/resumes}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 springdoc:
   api-docs:

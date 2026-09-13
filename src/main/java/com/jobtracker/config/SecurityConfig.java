@@ -3,6 +3,7 @@ package com.jobtracker.config;
 import com.jobtracker.security.JwtAuthenticationFilter;
 import com.jobtracker.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,6 +32,10 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsService;
+
+    // Comma-separated list of allowed origins, e.g. "http://localhost:3000,https://app.example.com"
+    @Value("${cors.allowed-origins:http://localhost:3000}")
+    private String allowedOrigins;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -80,7 +85,13 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        List<String> origins = List.of(allowedOrigins.split(","))
+                .stream()
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList();
+
+        configuration.setAllowedOrigins(origins);
 
         configuration.setAllowedMethods(
             List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
