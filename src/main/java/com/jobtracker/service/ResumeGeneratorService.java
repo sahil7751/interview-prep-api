@@ -8,6 +8,7 @@ import com.jobtracker.dto.request.ResumeGenerateRequest;
 import com.jobtracker.dto.response.GeneratedResumeResponse;
 import com.jobtracker.dto.response.GeneratedResumeResponse.*;
 import com.jobtracker.entity.User;
+import com.jobtracker.exception.ExternalServiceException;
 import com.jobtracker.repository.UserProfileRepository;
 import com.jobtracker.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -102,8 +103,8 @@ public class ResumeGeneratorService {
         } catch (Exception e) {
             log.error("Resume generation failed: {}",
                     e.getMessage());
-            throw new RuntimeException(
-                    "Failed to generate resume: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "Failed to generate resume: " + e.getMessage(), e);
         }
     }
 
@@ -458,7 +459,7 @@ public class ResumeGeneratorService {
 
             Map<?, ?> responseBody = response.getBody();
             if (responseBody == null) {
-                throw new RuntimeException(
+                throw new ExternalServiceException(
                         "Empty response from Groq");
             }
 
@@ -469,14 +470,14 @@ public class ResumeGeneratorService {
 
         } catch (Exception e) {
             log.error("Groq API error: {}", e.getMessage());
-            throw new RuntimeException(
-                    "AI service error: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "AI service error: " + e.getMessage(), e);
         }
     }
 
     private String cleanJson(String raw) {
         if (raw == null || raw.isBlank()) {
-            throw new RuntimeException("Empty AI response");
+            throw new ExternalServiceException("Empty AI response");
         }
         String cleaned = raw
                 .replaceAll("(?s)```json\\s*", "")

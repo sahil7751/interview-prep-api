@@ -7,6 +7,8 @@ import com.jobtracker.dto.response.ProfileCompletionResponse;
 import com.jobtracker.dto.response.ProfileResponse;
 import com.jobtracker.entity.User;
 import com.jobtracker.entity.UserProfile;
+import com.jobtracker.exception.BadRequestException;
+import com.jobtracker.exception.ExternalServiceException;
 import com.jobtracker.repository.ResumeRepository;
 import com.jobtracker.repository.UserProfileRepository;
 import com.jobtracker.repository.UserRepository;
@@ -76,7 +78,7 @@ public class ProfileService {
         if (req.getUsername() != null && !req.getUsername().isBlank()) {
             if (profileRepository.existsByUsernameAndUserNot(
                     req.getUsername(), user)) {
-                throw new RuntimeException(
+                throw new BadRequestException(
                         "Username '" + req.getUsername()
                                 + "' is already taken");
             }
@@ -132,21 +134,21 @@ public class ProfileService {
 
         // Validate file
         if (file.isEmpty()) {
-            throw new RuntimeException("File is empty");
+            throw new BadRequestException("File is empty");
         }
         String originalName = file.getOriginalFilename();
         if (originalName == null) {
-            throw new RuntimeException("Invalid file");
+            throw new BadRequestException("Invalid file");
         }
         String ext = originalName.substring(
                 originalName.lastIndexOf('.') + 1).toLowerCase();
 
         if (!List.of("jpg", "jpeg", "png", "webp").contains(ext)) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "Only JPG, PNG or WEBP images allowed");
         }
         if (file.getSize() > 2 * 1024 * 1024) {
-            throw new RuntimeException("Image must be under 2 MB");
+            throw new BadRequestException("Image must be under 2 MB");
         }
 
         // Save to disk
@@ -178,11 +180,11 @@ public class ProfileService {
 
         if (!passwordEncoder.matches(req.getCurrentPassword(),
                 user.getPassword())) {
-            throw new RuntimeException("Current password is incorrect");
+            throw new BadRequestException("Current password is incorrect");
         }
 
         if (!req.getNewPassword().equals(req.getConfirmPassword())) {
-            throw new RuntimeException("Passwords do not match");
+            throw new BadRequestException("Passwords do not match");
         }
 
         user.setPassword(
@@ -446,8 +448,8 @@ public class ProfileService {
                             ProfileReviewResponse.class);
                 } catch (Exception ex) {
                     log.error("Profile review failed: {}", ex.getMessage());
-                    throw new RuntimeException(
-                            "AI review failed: " + ex.getMessage());
+                    throw new ExternalServiceException(
+                            "AI review failed: " + ex.getMessage(), ex);
                 }
             }
 

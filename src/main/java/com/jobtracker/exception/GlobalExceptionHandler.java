@@ -29,6 +29,32 @@ public class GlobalExceptionHandler {
                                 .body(ApiResponse.error(ex.getMessage()));
         }
 
+        @ExceptionHandler(ExternalServiceException.class)
+        public ResponseEntity<ApiResponse<Object>> handleExternalService(ExternalServiceException ex) {
+                if (ex.getStatus().is4xxClientError()) {
+                        log.warn("External service client error: {}", ex.getMessage());
+                } else {
+                        log.error("External service upstream error: ", ex);
+                }
+
+                return ResponseEntity.status(ex.getStatus())
+                                .body(ApiResponse.error(ex.getMessage()));
+        }
+
+        @ExceptionHandler(ResourceNotFoundException.class)
+        public ResponseEntity<ApiResponse<Object>> handleNotFound(ResourceNotFoundException ex) {
+                log.warn("Resource not found: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(ApiResponse.error(ex.getMessage()));
+        }
+
+        @ExceptionHandler(BadRequestException.class)
+        public ResponseEntity<ApiResponse<Object>> handleBadRequest(BadRequestException ex) {
+                log.warn("Bad request: {}", ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.error(ex.getMessage()));
+        }
+
     // Validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(MethodArgumentNotValidException ex) {

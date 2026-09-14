@@ -4,6 +4,7 @@ import com.jobtracker.dto.request.InterviewRequest;
 import com.jobtracker.dto.response.InterviewResponse;
 import com.jobtracker.dto.response.PagedResponse;
 import com.jobtracker.entity.*;
+import com.jobtracker.exception.ResourceNotFoundException;
 import com.jobtracker.repository.ApplicationRepository;
 import com.jobtracker.repository.InterviewRepository;
 import com.jobtracker.security.SecurityUtils;
@@ -31,7 +32,7 @@ public class InterviewService {
         if (request.getApplicationId() != null) {
             application = applicationRepository
                     .findByIdAndUser(request.getApplicationId(), user)
-                    .orElseThrow(() -> new RuntimeException("Application not found or access denied"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Application not found or access denied"));
         }
 
         Interview interview = Interview.builder()
@@ -91,7 +92,7 @@ public class InterviewService {
 
         return toResponse(
                 interviewRepository.findByIdAndUser(id, user)
-                        .orElseThrow(() -> new RuntimeException(
+                        .orElseThrow(() -> new ResourceNotFoundException(
                                 "Interview not found or access denied")));
     }
 
@@ -102,13 +103,13 @@ public class InterviewService {
 
         Interview interview = interviewRepository
                 .findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Interview not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Interview not found or access denied"));
 
         Application application = null;
         if (request.getApplicationId() != null) {
             application = applicationRepository
                     .findByIdAndUser(request.getApplicationId(), user)
-                    .orElseThrow(() -> new RuntimeException("Application not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
         }
 
         interview.setApplication(application);
@@ -129,7 +130,7 @@ public class InterviewService {
 
         Interview interview = interviewRepository
                 .findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Interview not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Interview not found or access denied"));
 
         interviewRepository.delete(interview);
     }

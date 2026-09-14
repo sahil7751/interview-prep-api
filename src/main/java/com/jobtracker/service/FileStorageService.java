@@ -1,5 +1,6 @@
 package com.jobtracker.service;
 
+import com.jobtracker.exception.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,18 +52,18 @@ public class FileStorageService {
     // Validate that uploaded file is a PDF
     public void validatePdf(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new RuntimeException("File is empty");
+            throw new BadRequestException("File is empty");
         }
 
         String originalName = file.getOriginalFilename();
         if (originalName == null ||
                 !originalName.toLowerCase().endsWith(".pdf")) {
-            throw new RuntimeException("Only PDF files are allowed");
+            throw new BadRequestException("Only PDF files are allowed");
         }
 
         // 5 MB limit
         if (file.getSize() > 5 * 1024 * 1024) {
-            throw new RuntimeException("File size must be under 5 MB");
+            throw new BadRequestException("File size must be under 5 MB");
         }
     }
 

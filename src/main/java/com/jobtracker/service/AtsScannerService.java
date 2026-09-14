@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jobtracker.dto.request.AtsScanTextRequest;
 import com.jobtracker.dto.response.AtsScanResponse;
 import com.jobtracker.dto.response.AtsScanResponse.SectionScore;
+import com.jobtracker.exception.BadRequestException;
+import com.jobtracker.exception.ExternalServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,22 +49,22 @@ public class AtsScannerService {
 
         // Validate file
         if (file.isEmpty()) {
-            throw new RuntimeException("File is empty");
+            throw new BadRequestException("File is empty");
         }
         String originalName = file.getOriginalFilename();
         if (originalName == null
                 || !originalName.toLowerCase().endsWith(".pdf")) {
-            throw new RuntimeException("Only PDF files accepted");
+            throw new BadRequestException("Only PDF files accepted");
         }
         if (file.getSize() > 5 * 1024 * 1024) {
-            throw new RuntimeException("File must be under 5 MB");
+            throw new BadRequestException("File must be under 5 MB");
         }
 
         // Extract text from PDF
         String resumeText = extractTextFromPdf(file);
 
         if (resumeText == null || resumeText.isBlank()) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "Could not extract text from PDF. "
                             + "Please ensure it is not a scanned image.");
         }
@@ -118,8 +120,8 @@ public class AtsScannerService {
 
         } catch (Exception e) {
             log.error("ATS scan parse failed: {}", e.getMessage());
-            throw new RuntimeException(
-                    "ATS analysis failed: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "ATS analysis failed: " + e.getMessage(), e);
         }
     }
 
@@ -217,7 +219,7 @@ public class AtsScannerService {
 
             Map<?, ?> responseBody = response.getBody();
             if (responseBody == null) {
-                throw new RuntimeException("Empty response");
+                throw new ExternalServiceException("Empty response");
             }
             List<?> choices = (List<?>) responseBody.get("choices");
             Map<?, ?> choice = (Map<?, ?>) choices.get(0);
@@ -226,15 +228,15 @@ public class AtsScannerService {
 
         } catch (Exception e) {
             log.error("Groq API error: {}", e.getMessage());
-            throw new RuntimeException(
-                    "AI error: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "AI error: " + e.getMessage(), e);
         }
     }
 
     // ── HELPERS ──────────────────────────────────────────────────
     private String cleanJson(String raw) {
         if (raw == null || raw.isBlank()) {
-            throw new RuntimeException("Empty AI response");
+            throw new ExternalServiceException("Empty AI response");
         }
         String cleaned = raw
                 .replaceAll("(?s)```json\\s*", "")

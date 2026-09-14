@@ -6,6 +6,8 @@ import com.jobtracker.entity.Application;
 import com.jobtracker.entity.ApplicationStatus;
 import com.jobtracker.entity.User;
 import com.jobtracker.entity.XpAction;
+import com.jobtracker.exception.BadRequestException;
+import com.jobtracker.exception.ResourceNotFoundException;
 import com.jobtracker.repository.ApplicationRepository;
 import com.jobtracker.util.ApplicationMapper;
 import com.jobtracker.util.AuthUtil;
@@ -66,7 +68,7 @@ public class ApplicationService {
             try {
                 statusEnum = ApplicationStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid status: " + status);
+                throw new BadRequestException("Invalid status: " + status);
             }
         }
 
@@ -99,7 +101,7 @@ public class ApplicationService {
         User user = authUtil.getCurrentUser();
 
         Application app = applicationRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         return ApplicationMapper.toResponse(app);
     }
@@ -113,7 +115,7 @@ public class ApplicationService {
         User user = authUtil.getCurrentUser();
 
         Application app = applicationRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         ApplicationMapper.updateEntity(app, request);
 
@@ -129,7 +131,7 @@ public class ApplicationService {
         User user = authUtil.getCurrentUser();
 
         Application app = applicationRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         applicationRepository.delete(app);
     }
@@ -143,12 +145,12 @@ public class ApplicationService {
         User user = authUtil.getCurrentUser();
 
         Application app = applicationRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         try {
             app.setStatus(ApplicationStatus.valueOf(status.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid status: " + status);
+            throw new BadRequestException("Invalid status: " + status);
         }
 
         return ApplicationMapper.toResponse(

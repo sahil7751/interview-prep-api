@@ -5,6 +5,8 @@ import com.jobtracker.dto.request.RegisterRequest;
 import com.jobtracker.dto.response.AuthResponse;
 import com.jobtracker.entity.Role;
 import com.jobtracker.entity.User;
+import com.jobtracker.exception.BadRequestException;
+import com.jobtracker.exception.ResourceNotFoundException;
 import com.jobtracker.repository.UserRepository;
 import com.jobtracker.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new BadRequestException("Email already registered");
         }
 
         User user = User.builder()
@@ -53,7 +55,7 @@ public class AuthService {
                         request.getEmail(), request.getPassword()));
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String token = jwtTokenProvider.generateToken(user);
 

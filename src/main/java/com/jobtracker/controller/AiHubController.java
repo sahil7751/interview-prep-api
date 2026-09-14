@@ -3,10 +3,13 @@ package com.jobtracker.controller;
 import com.jobtracker.dto.request.AiHubRequest;
 import com.jobtracker.dto.response.*;
 import com.jobtracker.entity.*;
+import com.jobtracker.exception.ExternalServiceException;
+import com.jobtracker.exception.ResourceNotFoundException;
 import com.jobtracker.repository.*;
 import com.jobtracker.security.SecurityUtils;
 import com.jobtracker.service.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -86,7 +89,7 @@ public class AiHubController {
     // ── Company Preparation ──────────────────────────────────────
     @PostMapping("/company-prep")
     public ResponseEntity<ApiResponse<AiHubResponse>>
-            companyPrep(@RequestBody AiHubRequest request) {
+            companyPrep(@Valid @RequestBody AiHubRequest request) {
 
         User user = securityUtils.getCurrentUser();
 
@@ -133,8 +136,8 @@ public class AiHubController {
                             .xpEarned(20)
                             .build()));
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Company prep failed: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "Company prep failed: " + e.getMessage(), e);
         }
     }
 
@@ -146,7 +149,7 @@ public class AiHubController {
         User user = securityUtils.getCurrentUser();
         Resume resume = resumeRepository
                 .findByUserAndIsActiveTrue(user)
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "No active resume found"));
 
         java.nio.file.Path path = fileStorageService.getFilePath(

@@ -5,6 +5,7 @@ import com.jobtracker.entity.Application;
 import com.jobtracker.entity.Notification;
 import com.jobtracker.entity.NotificationType;
 import com.jobtracker.entity.User;
+import com.jobtracker.exception.ResourceNotFoundException;
 import com.jobtracker.repository.NotificationRepository;
 import com.jobtracker.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,7 @@ public class NotificationService {
     public void markAsRead(Long id) {
         User user = securityUtils.getCurrentUser();
         Notification notification = notificationRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
         notification.setIsRead(true);
         notificationRepository.save(notification);
     }

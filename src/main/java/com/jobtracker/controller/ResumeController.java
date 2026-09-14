@@ -3,6 +3,7 @@ package com.jobtracker.controller;
 import com.jobtracker.dto.request.ResumeMetadataRequest;
 import com.jobtracker.dto.response.*;
 import com.jobtracker.service.ResumeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
@@ -95,7 +96,7 @@ public class ResumeController {
     @PutMapping("/{id}/metadata")
     public ResponseEntity<ApiResponse<ResumeResponse>> updateMetadata(
             @PathVariable Long id,
-            @RequestBody ResumeMetadataRequest request) {
+            @Valid @RequestBody ResumeMetadataRequest request) {
         return ResponseEntity.ok(
                 ApiResponse.success("Metadata updated",
                         resumeService.updateMetadata(id, request)));

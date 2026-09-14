@@ -3,6 +3,7 @@ package com.jobtracker.service;
 import com.jobtracker.dto.request.CareerCoachRequest;
 import com.jobtracker.dto.response.CareerCoachResponse;
 import com.jobtracker.entity.User;
+import com.jobtracker.exception.ExternalServiceException;
 import com.jobtracker.repository.*;
 import com.jobtracker.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -297,15 +298,15 @@ public class CareerCoachService {
 
             Map<?, ?> rb = response.getBody();
             if (rb == null)
-                throw new RuntimeException("Empty response");
+                throw new ExternalServiceException("Empty response");
             List<?> choices = (List<?>) rb.get("choices");
             Map<?, ?> choice = (Map<?, ?>) choices.get(0);
             Map<?, ?> msg = (Map<?, ?>) choice.get("message");
             return msg.get("content").toString();
         } catch (Exception e) {
             log.error("Groq error: {}", e.getMessage());
-            throw new RuntimeException(
-                    "AI service error: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "AI service error: " + e.getMessage(), e);
         }
     }
 }

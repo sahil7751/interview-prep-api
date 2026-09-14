@@ -6,6 +6,8 @@ import com.jobtracker.dto.request.EvaluateAnswerRequest;
 import com.jobtracker.dto.request.StartSessionRequest;
 import com.jobtracker.dto.response.*;
 import com.jobtracker.entity.*;
+import com.jobtracker.exception.ExternalServiceException;
+import com.jobtracker.exception.ResourceNotFoundException;
 import com.jobtracker.repository.*;
 import com.jobtracker.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -211,7 +213,7 @@ public class InterviewEvalService {
 
         InterviewQaRecord record = qaRepository
                 .findByIdAndUser(request.getQuestionId(), user)
-                .orElseThrow(() -> new RuntimeException("Question not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
         if (Boolean.TRUE.equals(record.getIsEvaluated())) {
             // Return existing evaluation
@@ -273,7 +275,7 @@ public class InterviewEvalService {
 
         InterviewPracticeSession session = sessionRepository
                 .findByIdAndUser(sessionId, user)
-                .orElseThrow(() -> new RuntimeException("Session not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Session not found"));
 
         List<PracticeQuestionResponse> questions = qaRepository.findBySessionOrderByCreatedAtAsc(session)
                 .stream()
@@ -337,7 +339,7 @@ public class InterviewEvalService {
 
         InterviewQaRecord record = qaRepository
                 .findByIdAndUser(questionId, user)
-                .orElseThrow(() -> new RuntimeException("Question not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
         if (record.getIdealAnswer() != null) {
             return record.getIdealAnswer();
@@ -506,7 +508,7 @@ public class InterviewEvalService {
 
             Map<?, ?> responseBody = response.getBody();
             if (responseBody == null) {
-                throw new RuntimeException("Empty response from Groq");
+                throw new ExternalServiceException("Empty response from Groq");
             }
 
             List<?> choices = (List<?>) responseBody.get("choices");
@@ -516,8 +518,8 @@ public class InterviewEvalService {
 
         } catch (Exception e) {
             log.error("Groq API error: {}", e.getMessage());
-            throw new RuntimeException(
-                    "AI service error: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "AI service error: " + e.getMessage(), e);
         }
     }
 
@@ -525,7 +527,7 @@ public class InterviewEvalService {
 
     private String cleanJson(String raw) {
         if (raw == null || raw.isBlank()) {
-            throw new RuntimeException("Empty response from AI");
+            throw new ExternalServiceException("Empty response from AI");
         }
 
         String cleaned = raw

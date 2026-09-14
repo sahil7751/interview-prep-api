@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import com.jobtracker.dto.response.ResumeResponse;
 import com.jobtracker.entity.Resume;
 import com.jobtracker.entity.User;
+import com.jobtracker.exception.ResourceNotFoundException;
 import com.jobtracker.repository.ResumeRepository;
 import com.jobtracker.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -85,7 +86,7 @@ public class ResumeService {
         User user = securityUtils.getCurrentUser();
 
         Resume resume = resumeRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Resume not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resume not found or access denied"));
 
         return toResponse(resume, user.getId());
     }
@@ -95,7 +96,7 @@ public class ResumeService {
         User user = securityUtils.getCurrentUser();
 
         Resume resume = resumeRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Resume not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resume not found or access denied"));
 
         Path filePath = fileStorageService
                 .getFilePath(user.getId(), resume.getFileName());
@@ -103,7 +104,7 @@ public class ResumeService {
         Resource resource = new UrlResource(filePath.toUri());
 
         if (!resource.exists() || !resource.isReadable()) {
-            throw new RuntimeException("File not found on server");
+            throw new ResourceNotFoundException("File not found on server");
         }
 
         return resource;
@@ -115,7 +116,7 @@ public class ResumeService {
         User user = securityUtils.getCurrentUser();
 
         Resume resume = resumeRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Resume not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resume not found or access denied"));
 
         // Deactivate all, then activate this one
         resumeRepository.deactivateAllForUser(user);
@@ -130,7 +131,7 @@ public class ResumeService {
         User user = securityUtils.getCurrentUser();
 
         Resume resume = resumeRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Resume not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resume not found or access denied"));
 
         resume.setLabel(label);
         return toResponse(resumeRepository.save(resume), user.getId());
@@ -142,7 +143,7 @@ public class ResumeService {
         User user = securityUtils.getCurrentUser();
 
         Resume resume = resumeRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Resume not found or access denied"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resume not found or access denied"));
 
         // Delete file from disk
         fileStorageService.deleteFile(user.getId(), resume.getFileName());
@@ -199,7 +200,7 @@ public ResumeResponse updateMetadata(Long id,
     User user = securityUtils.getCurrentUser();
     Resume resume = resumeRepository.findByIdAndUser(id, user)
             .orElseThrow(() ->
-                    new RuntimeException("Resume not found"));
+                    new ResourceNotFoundException("Resume not found"));
 
     if (request.getLabel() != null) {
         resume.setLabel(request.getLabel());
@@ -226,7 +227,7 @@ public ResumeResponse scanAndSaveAts(Long id,
     User user = securityUtils.getCurrentUser();
     Resume resume = resumeRepository.findByIdAndUser(id, user)
             .orElseThrow(() ->
-                    new RuntimeException("Resume not found"));
+                    new ResourceNotFoundException("Resume not found"));
 
     // Load file and scan
     java.nio.file.Path filePath =
@@ -237,7 +238,7 @@ public ResumeResponse scanAndSaveAts(Long id,
                     filePath.toUri());
 
     if (!resource.exists()) {
-        throw new RuntimeException("Resume file not found");
+        throw new ResourceNotFoundException("Resume file not found");
     }
 
     // Use AtsScannerService via text extraction
@@ -277,10 +278,10 @@ public ResumeComparisonResponse compare(Long id1, Long id2) {
 
     Resume r1 = resumeRepository.findByIdAndUser(id1, user)
             .orElseThrow(() ->
-                    new RuntimeException("Resume 1 not found"));
+                    new ResourceNotFoundException("Resume 1 not found"));
     Resume r2 = resumeRepository.findByIdAndUser(id2, user)
             .orElseThrow(() ->
-                    new RuntimeException("Resume 2 not found"));
+                    new ResourceNotFoundException("Resume 2 not found"));
 
     ResumeResponse resp1 = toResponse(r1, user.getId());
     ResumeResponse resp2 = toResponse(r2, user.getId());

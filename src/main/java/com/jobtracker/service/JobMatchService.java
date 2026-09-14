@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jobtracker.dto.request.JobMatchRequest;
 import com.jobtracker.dto.response.JobMatchResponse;
+import com.jobtracker.exception.BadRequestException;
+import com.jobtracker.exception.ExternalServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -54,20 +56,20 @@ public class JobMatchService {
 
         // Validate
         if (file.isEmpty()) {
-            throw new RuntimeException("File is empty");
+            throw new BadRequestException("File is empty");
         }
         String name = file.getOriginalFilename();
         if (name == null || !name.toLowerCase().endsWith(".pdf")) {
-            throw new RuntimeException("Only PDF files accepted");
+            throw new BadRequestException("Only PDF files accepted");
         }
         if (file.getSize() > 5 * 1024 * 1024) {
-            throw new RuntimeException("File must be under 5 MB");
+            throw new BadRequestException("File must be under 5 MB");
         }
 
         // Extract text
         String resumeText = extractPdfText(file);
         if (resumeText == null || resumeText.isBlank()) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "Could not extract text from PDF.");
         }
 
@@ -125,8 +127,8 @@ public class JobMatchService {
         } catch (Exception e) {
             log.error("Job match parse failed: {}",
                     e.getMessage());
-            throw new RuntimeException(
-                    "Analysis failed: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "Analysis failed: " + e.getMessage(), e);
         }
     }
 
@@ -237,7 +239,7 @@ public class JobMatchService {
 
             Map<?, ?> rb = response.getBody();
             if (rb == null) {
-                throw new RuntimeException("Empty response");
+                throw new ExternalServiceException("Empty response");
             }
             List<?> choices = (List<?>) rb.get("choices");
             Map<?, ?> choice = (Map<?, ?>) choices.get(0);
@@ -246,14 +248,14 @@ public class JobMatchService {
 
         } catch (Exception e) {
             log.error("Groq error: {}", e.getMessage());
-            throw new RuntimeException(
-                    "AI error: " + e.getMessage());
+            throw new ExternalServiceException(
+                    "AI error: " + e.getMessage(), e);
         }
     }
 
     private String cleanJson(String raw) {
         if (raw == null || raw.isBlank()) {
-            throw new RuntimeException("Empty response");
+            throw new ExternalServiceException("Empty response");
         }
         String c = raw
                 .replaceAll("(?s)```json\\s*", "")

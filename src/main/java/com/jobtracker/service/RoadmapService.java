@@ -7,6 +7,8 @@ import com.jobtracker.dto.response.MilestoneResponse;
 import com.jobtracker.dto.response.RoadmapResponse;
 import com.jobtracker.dto.response.RoadmapResponse.WeekSummary;
 import com.jobtracker.entity.*;
+import com.jobtracker.exception.ExternalServiceException;
+import com.jobtracker.exception.ResourceNotFoundException;
 import com.jobtracker.repository.*;
 import com.jobtracker.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -128,7 +130,7 @@ public class RoadmapService {
         User user = securityUtils.getCurrentUser();
         SkillRoadmap roadmap = roadmapRepository
                 .findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Roadmap not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Roadmap not found"));
 
         List<RoadmapMilestone> milestones = milestoneRepository
                 .findByRoadmapOrderByWeekNumberAscOrderIndexAsc(
@@ -145,11 +147,11 @@ public class RoadmapService {
 
         SkillRoadmap roadmap = roadmapRepository
                 .findByIdAndUser(roadmapId, user)
-                .orElseThrow(() -> new RuntimeException("Roadmap not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Roadmap not found"));
 
         RoadmapMilestone milestone = milestoneRepository
                 .findByIdAndRoadmap(milestoneId, roadmap)
-                .orElseThrow(() -> new RuntimeException("Milestone not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Milestone not found"));
 
         // Toggle
         milestone.setCompleted(!milestone.isCompleted());
@@ -183,7 +185,7 @@ public class RoadmapService {
         User user = securityUtils.getCurrentUser();
         SkillRoadmap roadmap = roadmapRepository
                 .findByIdAndUser(id, user)
-                .orElseThrow(() -> new RuntimeException("Roadmap not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Roadmap not found"));
         roadmapRepository.delete(roadmap);
     }
 
@@ -280,7 +282,7 @@ public class RoadmapService {
 
         Map<?, ?> rb = response.getBody();
         if (rb == null)
-            throw new RuntimeException("Empty response");
+            throw new ExternalServiceException("Empty response");
         List<?> choices = (List<?>) rb.get("choices");
         Map<?, ?> choice = (Map<?, ?>) choices.get(0);
         Map<?, ?> msg = (Map<?, ?>) choice.get("message");
