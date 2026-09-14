@@ -20,12 +20,19 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.net.SocketTimeoutException;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class GroqService {
+
+    // Bounded retry policy for transient upstream failures only.
+    // Max 2 retries after the initial attempt (3 attempts total), short exponential backoff.
+    private static final int MAX_RETRY_ATTEMPTS = 2;
+    private static final long BASE_BACKOFF_MS = 300L;
+    private static final Set<Integer> RETRYABLE_HTTP_STATUS_CODES = Set.of(429, 502, 503, 504);
 
     @Value("${groq.api.key}")
     private String apiKey;
@@ -70,46 +77,90 @@ public class GroqService {
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
 
+        int attempt = 0;
+
+        while (true) {
+            try {
+                return callGroqAndParse(entity);
+
+            } catch (HttpStatusCodeException ex) {
+                int statusCode = ex.getStatusCode().value();
+                if (attempt < MAX_RETRY_ATTEMPTS && RETRYABLE_HTTP_STATUS_CODES.contains(statusCode)) {
+                    attempt++;
+                    log.warn("Groq call failed with retryable status {} (attempt {}/{}). Retrying...",
+                            statusCode, attempt, MAX_RETRY_ATTEMPTS);
+                    awaitBackoff(attempt);
+                    continue;
+                }
+                // Not retryable (e.g. 400/401/403) or retries exhausted — preserve existing mapping.
+                throw mapHttpException(ex);
+
+            } catch (ResourceAccessException ex) {
+                // Connection failures / timeouts — always map to a retryable status
+                // (GATEWAY_TIMEOUT or SERVICE_UNAVAILABLE), so bounded retry applies here too.
+                if (attempt < MAX_RETRY_ATTEMPTS) {
+                    attempt++;
+                    log.warn("Groq call failed with a connection/timeout error (attempt {}/{}). Retrying...",
+                            attempt, MAX_RETRY_ATTEMPTS);
+                    awaitBackoff(attempt);
+                    continue;
+                }
+                throw mapResourceAccessException(ex);
+
+            } catch (GroqServiceException ex) {
+                // Structural response issues (empty body / missing choices / missing content)
+                // and JSON parsing failures are permanent for a given response — never retried.
+                throw ex;
+
+            } catch (Exception ex) {
+                // Includes JSON parsing/deserialization failures — not retried.
+                log.error("Unexpected Groq client error", ex);
+                throw new GroqServiceException(HttpStatus.BAD_GATEWAY, "Failed to process Groq response", ex);
+            }
+        }
+    }
+
+    // Single HTTP call + response parsing. Left exception types unwrapped so the
+    // retry loop above can inspect them before they're mapped to a GroqServiceException.
+    private String callGroqAndParse(HttpEntity<Map<String, Object>> entity) throws Exception {
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                apiUrl,
+                entity,
+                String.class);
+
+        log.debug("Groq response status: {}", response.getStatusCode());
+
+        String body = response.getBody();
+        if (body == null || body.isBlank()) {
+            throw new GroqServiceException(HttpStatus.BAD_GATEWAY, "Groq returned an empty response");
+        }
+
+        JsonNode root = objectMapper.readTree(body);
+        JsonNode choices = root.path("choices");
+
+        if (!choices.isArray() || choices.isEmpty()) {
+            throw new GroqServiceException(HttpStatus.BAD_GATEWAY, "Groq response missing choices");
+        }
+
+        JsonNode message = choices.get(0).path("message");
+        JsonNode content = message.path("content");
+
+        if (content.isMissingNode() || content.isNull() || content.asText().isBlank()) {
+            throw new GroqServiceException(HttpStatus.BAD_GATEWAY, "Groq response missing message content");
+        }
+
+        String generatedContent = content.asText();
+        log.debug("Groq response content length: {} characters", generatedContent.length());
+        return generatedContent;
+    }
+
+    // Short exponential backoff: 300ms, then 600ms. Bounded and intentionally brief.
+    private void awaitBackoff(int attempt) {
+        long backoffMs = BASE_BACKOFF_MS * (1L << (attempt - 1));
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    apiUrl,
-                    entity,
-                    String.class);
-
-            log.debug("Groq response status: {}", response.getStatusCode());
-
-            String body = response.getBody();
-            if (body == null || body.isBlank()) {
-                throw new GroqServiceException(HttpStatus.BAD_GATEWAY, "Groq returned an empty response");
-            }
-
-            JsonNode root = objectMapper.readTree(body);
-            JsonNode choices = root.path("choices");
-
-            if (!choices.isArray() || choices.isEmpty()) {
-                throw new GroqServiceException(HttpStatus.BAD_GATEWAY, "Groq response missing choices");
-            }
-
-            JsonNode message = choices.get(0).path("message");
-            JsonNode content = message.path("content");
-
-            if (content.isMissingNode() || content.isNull() || content.asText().isBlank()) {
-                throw new GroqServiceException(HttpStatus.BAD_GATEWAY, "Groq response missing message content");
-            }
-
-            String generatedContent = content.asText();
-            log.debug("Groq response content length: {} characters", generatedContent.length());
-            return generatedContent;
-
-        } catch (HttpStatusCodeException ex) {
-            throw mapHttpException(ex);
-        } catch (ResourceAccessException ex) {
-            throw mapResourceAccessException(ex);
-        } catch (GroqServiceException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            log.error("Unexpected Groq client error", ex);
-            throw new GroqServiceException(HttpStatus.BAD_GATEWAY, "Failed to process Groq response", ex);
+            Thread.sleep(backoffMs);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -185,6 +236,3 @@ public class GroqService {
         return responseBody;
     }
 }
-
-
-
